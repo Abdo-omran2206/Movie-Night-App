@@ -1,91 +1,72 @@
 # Movie Night 🎬
 
-Welcome to Movie Night - your ultimate companion for discovering and tracking movies and TV shows! This modern mobile application is built with React Native and Expo, offering a seamless experience for movie enthusiasts.
+<p align="center">
+  <img src="./assets/images/icon.png" width="128" height="128" alt="Movie Night Icon" />
+</p>
 
-## Features
+Welcome to **Movie Night** - your ultimate companion for discovering and tracking movies and TV shows! This modern mobile application is built with React Native and Expo, offering a premium experience for movie enthusiasts.
 
-- 🏠 **Home Feed**: Browse trending movies and TV shows
-- 🔍 **Search**: Find your favorite movies and TV shows easily
-- 📱 **Movie Details**: View comprehensive information about movies, including:
-  - Cast information
-  - Trailers
-  - Related content
-- 📺 **TV Show Details**: Detailed information about TV series
-- 🔖 **Bookmarks**: Save your favorite content for later
-- 👨‍👩‍👦 **Actor Profiles**: Explore detailed information about cast members
+## 🚀 Features
 
-## Getting Started
+- 🏠 **Home Feed**: Browse trending movies and TV shows with a sleek, dynamic carousel.
+- 🔍 **Explore & Search**: Advanced filtering and search to find exactly what you're looking for.
+- 📱 **Immersive Details**: View comprehensive information, including:
+  - Cast information & detailed actor profiles.
+  - Trailers via integrated YouTube playback.
+  - Related content recommendations.
+- 🔐 **Secure Authentication**: Full auth flow with Login, Registration, and Email OTP verification powered by Supabase.
+- 🔖 **Smart Bookmarks**: Save your favorite content with cloud synchronization.
+- 🔄 **Cloud Sync**: Persistent state management ensuring your data is safe across sessions.
 
-1. Install dependencies
+## 🛠️ Tech Stack
+
+- **Framework**: [Expo](https://expo.dev/) & [React Native](https://reactnative.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Backend**: [Supabase](https://supabase.com/) (Auth & Database)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based)
+- **UI/UX**:
+  - `react-native-reanimated` for smooth animations.
+  - `expo-linear-gradient` for premium aesthetics.
+  - `react-native-safe-area-context` for responsive layouts.
+- **Media**: `react-native-youtube-iframe` for video integration.
+
+## 📦 Getting Started
+
+1. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. **Environment Setup**
+   Ensure you have your Supabase credentials configured in your environment.
 
+3. **Start the app**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Project Structure
+## 📂 Project Structure
 
 ```
 app/
-├── _layout.tsx          # Main layout component
-├── index.tsx           # Entry point
-├── actordata/         # Actor details
-├── api/               # API and database handlers
-├── main/             # Main app screens
-│   ├── Home/         # Home screen
-│   ├── Explore/      # Explore section
-│   ├── search/       # Search functionality
-│   └── bookmark/     # Bookmarks feature
-├── moviedetails/     # Movie detail screens
-└── tvdetails/        # TV show detail screens
+├── _layout.tsx          # Root layout & Auth provider
+├── index.tsx           # Entry point (Main Tabs)
+├── api/               # Supabase client & API handlers
+├── components/        # Reusable UI components
+├── pages/             # Application screens
+│   ├── account/      # Auth flow (Login, Register, Confirm)
+│   ├── Home.tsx      # Main Home feed
+│   ├── Explore.tsx   # Discovery section
+│   └── Profile.tsx   # User settings & cloud sync
+└── store/             # Zustand state management
 ```
 
-## Tech Stack
+## 📈 Version
 
-- [React Native](https://reactnative.dev/) - Mobile application framework
-- [Expo](https://expo.dev/) - Development platform
-- [TypeScript](https://www.typescriptlang.org/) - Programming language
-- [Expo Router](https://docs.expo.dev/router/introduction/) - Navigation
-- [SQLite](https://www.sqlite.org/index.html) - Local database storage
-- [React Native YouTube](https://www.npmjs.com/package/react-native-youtube-iframe) - Video playback
+Current version: **2.0.0**
 
-## Dependencies
-
-Key dependencies include:
-- `@expo/vector-icons` - Icon library
-- `expo-sqlite` - Local database management
-- `react-native-youtube-iframe` - YouTube video integration
-- `react-native-webview` - Web content display
-- `expo-linear-gradient` - Gradient effects
-
-## Version
-
-Current version: 1.0.0
-
-## License
+## 📄 License
 
 This project is private and proprietary.
