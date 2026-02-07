@@ -2,7 +2,7 @@
   "expo": {
     "name": "Movie Night",
     "slug": "MovieNight",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "owner": "akiraomran",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -19,7 +19,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.akiraomran.MovieNight"
     },
     "web": {
       "output": "static",

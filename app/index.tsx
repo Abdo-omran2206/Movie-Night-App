@@ -27,9 +27,11 @@ export default function Index() {
 
   useEffect(() => {
     // Keep a simple splash delay in index
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
+    if (isConnected) {
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
   }, []);
   return (
     <SafeAreaProvider>
