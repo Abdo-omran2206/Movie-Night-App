@@ -28,7 +28,7 @@ const { width, height } = Dimensions.get("window");
 export default function ActorDetails() {
   const { actorID } = useLocalSearchParams();
   const router = useRouter();
-  const { webSiteUrl } = useStore();
+  const { webSiteUrl, config } = useStore();
   const [actor, setActor] = useState<any>(null);
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,10 +41,18 @@ export default function ActorDetails() {
 
   const onShare = async () => {
     try {
+      const shareUrl = `${webSiteUrl}${config?.actor_slug || "/actor/"}${actor.id}`;
+
+      // Use template from config or fallback to default message
+      const shareMessage = config?.share_text_template_actor
+        ? config.share_text_template_actor
+            .replace("{name}", actor?.name || "this actor")
+            .replace("{url}", shareUrl)
+        : `🎬 Check out ${actor?.name} on Movie Night!\n\n${shareUrl}`;
+
       await Share.share({
         title: "Movie Night",
-        message: `🎬 Check out${actor?.name} on Movie Night!\n\n${webSiteUrl}/actor/index.html?actorID=${actor.id}
-        `,
+        message: shareMessage,
       });
     } catch (error: any) {
       console.error(error.message);

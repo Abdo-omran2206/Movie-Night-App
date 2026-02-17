@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { supabase } from "./api/supabase";
 import { useStore } from "./store/store";
 import { BookmarkManager } from "./api/BookmarkManager";
+import { fetchAppConfig } from "./api/ConfigManager";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -43,6 +44,7 @@ export default function RootLayout() {
 
     // 🚀 Global Init
     (async () => {
+      await fetchAppConfig();
       await BookmarkManager.init();
       // Initial check
       const {
@@ -54,8 +56,17 @@ export default function RootLayout() {
       }
     })();
 
+    // 🕒 Periodic Config Refresh (Every 30 Minutes)
+    const configInterval = setInterval(
+      async () => {
+        await fetchAppConfig();
+      },
+      1000 * 60 * 30,
+    );
+
     return () => {
       subscription.unsubscribe();
+      clearInterval(configInterval);
     };
   }, []);
 

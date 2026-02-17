@@ -128,7 +128,7 @@ export default function Bookmark() {
 
       <FlatList
         data={renderData}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.movieID.toString()}
         renderItem={({ item }) => (
           <BookmarkCard item={item} onRemove={handleRemove} />
         )}

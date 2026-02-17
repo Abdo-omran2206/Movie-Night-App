@@ -21,13 +21,36 @@ type UserState = {
   setUser: (user: any) => void;
 };
 
-type Website = {
+
+type AppConfig = {
+  base_url: string;
+  movie_slug: string;
+  actor_slug: string;
+  min_app_version: string;
+  latest_app_version: string;
+  force_stop: boolean;
+  force_message: string;
+  app_link_update: string;
+  share_text_template_movie: string;
+  share_text_template_actor: string;
+};
+
+type ConfigState = {
+  config: AppConfig | null;
   webSiteUrl: string;
+  setConfig: (config: AppConfig) => void;
+};
+
+type AppBlockState = {
+  isAppBlocked: boolean;
+  blockReason: string | null;
+  blockMessage: string | null;
+  setAppBlocked: (reason: string | null, message: string | null) => void;
 };
 
 // Zustand store with persistence
 export const useStore = create<
-  StoreType & UserMood & UserState & Website
+  StoreType & UserMood & UserState & ConfigState & AppBlockState
 >()(
   persist(
     (set) => ({
@@ -38,11 +61,29 @@ export const useStore = create<
       user: null,
       setUser: (user: any) => set({ user }),
 
-
       mood: "Guest",
       setMood: (mood: MoodType) => set({ mood }),
 
+      // App Config
+      config: null,
       webSiteUrl: "https://abdo-omran2206.github.io/Movie-Night",
+      setConfig: (config: AppConfig) =>
+        set({
+          config,
+          webSiteUrl:
+            config.base_url || "https://abdo-omran2206.github.io/Movie-Night",
+        }),
+
+      // App Blocking State
+      isAppBlocked: false,
+      blockReason: null,
+      blockMessage: null,
+      setAppBlocked: (reason: string | null, message: string | null) =>
+        set({
+          isAppBlocked: reason !== null,
+          blockReason: reason,
+          blockMessage: message,
+        }),
     }),
     {
       name: "movie-night-user-data", // New more descriptive name

@@ -18,6 +18,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useStore } from "../store/store";
 import { useRouter } from "expo-router";
 import { supabase } from "../api/supabase";
+import Constants from "expo-constants";
 
 const { width } = Dimensions.get("window");
 
@@ -25,7 +26,7 @@ export default function Account() {
   const { mood, setMood, user, setUser, setPage } = useStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-
+  const currentVersion = Constants.expoConfig?.version || "1.0.0";
   const [stats, setStats] = useState({
     watching: 0,
     watchLater: 0,
@@ -237,14 +238,17 @@ export default function Account() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#555" />
         </TouchableOpacity>
-
+*/}
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingLeft}>
-            <Ionicons name="language-outline" size={22} color="#fff" />
-            <Text style={styles.settingText}>Language</Text>
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color="#fff"
+            />
+            <Text style={styles.settingText}>App Version : {currentVersion}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#555" />
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.settingItem, { borderBottomWidth: 0 }]}

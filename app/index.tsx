@@ -1,4 +1,11 @@
-import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Linking,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
@@ -13,13 +20,13 @@ import Account from "./pages/Profile";
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
-  const [isConnected, setIsConnected] = useState<boolean | null>(true);
-  const { page } = useStore();
+  const [isConnected, setIsConnected] = useState<boolean | null>(false);
+  const { page, isAppBlocked, blockReason, blockMessage, config } = useStore();
 
   useEffect(() => {
     // 🌐 Subscribe to network state
     const unsubscribe = NetInfo.addEventListener((state) => {
-      setIsConnected(state.isConnected);
+      setIsConnected(state.isConnected && state.isInternetReachable !== false);
     });
 
     return () => unsubscribe();
@@ -32,11 +39,36 @@ export default function Index() {
         setLoading(false);
       }, 2000);
     }
-  }, []);
+  }, [isConnected]);
+
+  useEffect(() => {
+    // Show alert when new version is available
+    if (!loading && blockReason === "update_available" && blockMessage) {
+      Alert.alert(
+        "Update Available",
+        `A new version ${blockMessage} is available. Update now for the best experience!`,
+        [
+          { text: "Later", style: "cancel" },
+          {
+            text: "Update",
+            onPress: () => {
+              if (config?.app_link_update) {
+                Linking.openURL(config.app_link_update).catch((err) =>
+                  console.error("Failed to open update link:", err),
+                );
+              }
+            },
+          },
+        ],
+      );
+    }
+  }, [loading, blockReason, blockMessage, config]);
   return (
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: "#000" }}>
-        {loading ? (
+        {isAppBlocked ? (
+          <BlockedScreen reason={blockReason} message={blockMessage} />
+        ) : loading ? (
           <>
             <LoadingMainBox isConnected={isConnected} />
           </>
@@ -94,6 +126,55 @@ function LoadingMainBox({ isConnected }: { isConnected: boolean | null }) {
   );
 }
 
+function BlockedScreen({
+  reason,
+  message,
+}: {
+  reason: string | null;
+  message: string | null;
+}) {
+  const isMaintenance = reason === "maintenance";
+  const isUpdateRequired = reason === "update_required";
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <StatusBar
+        style="light"
+        translucent
+        backgroundColor="transparent"
+        hidden
+      />
+      <View style={styles.center}>
+        <Text style={styles.h1}>Movie</Text>
+        <Text style={styles.h2}>Night</Text>
+
+        <View style={styles.offlineContainer}>
+          <Ionicons
+            name={
+              isMaintenance ? "construct-outline" : "cloud-download-outline"
+            }
+            size={60}
+            color="#E50914"
+          />
+          <Text style={styles.offlineText}>
+            {isMaintenance ? "Under Maintenance" : "Update Required"}
+          </Text>
+          <Text style={styles.offlineSubText}>
+            {message || "Please check back later."}
+          </Text>
+          {isUpdateRequired && (
+            <Text
+              style={[styles.offlineSubText, { marginTop: 10, color: "#999" }]}
+            >
+              Please update the app to continue using Movie Night.
+            </Text>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   center: {
     flex: 1,
@@ -132,11 +213,13 @@ const styles = StyleSheet.create({
     fontFamily: "BebasNeue",
     marginTop: 10,
     letterSpacing: 1,
+    textAlign: "center",
   },
   offlineSubText: {
     color: "#777",
     fontSize: 14,
     fontFamily: "RobotoSlab",
     marginTop: 5,
+    textAlign: "center",
   },
 });

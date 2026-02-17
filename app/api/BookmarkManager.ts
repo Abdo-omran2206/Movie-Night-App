@@ -16,7 +16,15 @@ export const BookmarkManager = {
   }) => {
     const mood = useStore.getState().mood;
     if (mood === "Account") {
-      return await OnlineMood.addBookmark(movie);
+      return await OnlineMood.addBookmark({
+        ...movie,
+        type: movie.type as "movie" | "tv",
+        status: movie.status as
+          | "Watching"
+          | "Watch Later"
+          | "Completed"
+          | "Dropped",
+      });
     } else {
       return await GuestMood.addBookmark(movie);
     }
@@ -27,14 +35,7 @@ export const BookmarkManager = {
     const mood = useStore.getState().mood;
     if (mood === "Account") {
       const onlineData = await OnlineMood.getBookmarks();
-      // Normalize Online data (which now uses movieID/type) to match Guest structure
-      // If OnlineMood uses the same column names as App, we just pass efficiently.
-      // Online DB renamed movie_id -> movieID, media_type -> type
-      return onlineData.map((item: any) => ({
-        ...item,
-        movieID: item.movieID, // Already correct from DB
-        type: item.type,       // Already correct from DB
-      }));
+      return onlineData;
     } else {
       return await GuestMood.getBookmarks();
     }
@@ -74,7 +75,10 @@ export const BookmarkManager = {
   updateBookmarkStatus: async (id: string, status: string) => {
     const mood = useStore.getState().mood;
     if (mood === "Account") {
-      return await OnlineMood.updateBookmarkStatus(id, status);
+      return await OnlineMood.updateBookmarkStatus(
+        id,
+        status as "Watching" | "Watch Later" | "Completed" | "Dropped"
+      );
     } else {
       return await GuestMood.updateBookmarkStatus(id, status);
     }
@@ -95,13 +99,17 @@ export const BookmarkManager = {
         const numericId = parseInt(item.movieID || item.id); 
         
         await OnlineMood.addBookmark({
-            id: numericId,
-            title: item.title,
-            overview: item.overview,
-            poster_path: item.poster_path,
-            backdrop_path: item.backdrop_path,
-            type: item.type,
-            status: item.status
+          id: numericId,
+          title: item.title,
+          overview: item.overview,
+          poster_path: item.poster_path,
+          backdrop_path: item.backdrop_path,
+          type: item.type as "movie" | "tv",
+          status: item.status as
+            | "Watching"
+            | "Watch Later"
+            | "Completed"
+            | "Dropped",
         });
       }
       

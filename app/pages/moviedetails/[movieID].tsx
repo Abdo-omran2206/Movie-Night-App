@@ -29,14 +29,21 @@ export default function MovieDetails() {
   const [movie, setMovie] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
-  const { webSiteUrl } = useStore();
+  const { webSiteUrl, config } = useStore();
   const onShare = async () => {
     try {
+      const shareUrl = `${webSiteUrl}${config?.movie_slug || "/movie/"}${movie.id}`;
+
+      // Use template from config or fallback to default message
+      const shareMessage = config?.share_text_template_movie
+        ? config.share_text_template_movie
+            .replace("{title}", movie?.title || "this movie")
+            .replace("{url}", shareUrl)
+        : `Check out ${movie?.title} on Movie Night!\n${shareUrl}`;
+
       await Share.share({
         title: "Movie Night",
-        message: `Check out ${movie?.title} on Movie Night!
-        ${webSiteUrl}/moviedetails/index.html?movieID=${movie.id}
-        `,
+        message: shareMessage,
       });
     } catch (error: any) {
       console.error(error.message);
