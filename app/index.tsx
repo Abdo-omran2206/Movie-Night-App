@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  TouchableOpacity,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -67,7 +68,7 @@ export default function Index() {
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {isAppBlocked ? (
-          <BlockedScreen reason={blockReason} message={blockMessage} />
+          <BlockedScreen reason={blockReason} message={blockMessage} config={config} />
         ) : loading ? (
           <>
             <LoadingMainBox isConnected={isConnected} />
@@ -129,9 +130,11 @@ function LoadingMainBox({ isConnected }: { isConnected: boolean | null }) {
 function BlockedScreen({
   reason,
   message,
+  config,
 }: {
   reason: string | null;
   message: string | null;
+  config: any;
 }) {
   const isMaintenance = reason === "maintenance";
   const isUpdateRequired = reason === "update_required";
@@ -162,13 +165,30 @@ function BlockedScreen({
           <Text style={styles.offlineSubText}>
             {message || "Please check back later."}
           </Text>
-          {isUpdateRequired && (
-            <Text
-              style={[styles.offlineSubText, { marginTop: 10, color: "#999" }]}
-            >
-              Please update the app to continue using Movie Night.
-            </Text>
-          )}
+            {isUpdateRequired && (
+            <View style={{ marginTop: 20, alignItems: "center" }}>
+              <TouchableOpacity
+              style={{
+                backgroundColor: "#E50914",
+                paddingVertical: 12,
+                paddingHorizontal: 24,
+                borderRadius: 5,
+                marginTop: 20,
+              }}
+              onPress={() => {
+                if (config?.app_link_update) {
+                Linking.openURL(config.app_link_update).catch((err) =>
+                  console.error("Failed to open update link:", err),
+                );
+                }
+              }}
+              >
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+                Update App
+              </Text>
+              </TouchableOpacity>
+            </View>
+            )}
         </View>
       </View>
     </View>
@@ -205,6 +225,7 @@ const styles = StyleSheet.create({
   },
   offlineContainer: {
     marginTop: 40,
+    paddingHorizontal: 20,
     alignItems: "center",
   },
   offlineText: {
