@@ -4,6 +4,8 @@ import { router } from "expo-router";
 import React from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
 
+import Skeleton from "./Skeleton";
+
 type Movie = {
   id: number;
   title?: string;
@@ -13,7 +15,13 @@ type Movie = {
   vote_average?: number;
 };
 
-export default function RenderMovieCard({ item }: { item: Movie }) {
+export default function RenderMovieCard({
+  item,
+  Loading,
+}: {
+  item: Movie;
+  Loading?: boolean;
+}) {
   const [fontsLoaded] = useFonts({
     BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
@@ -23,9 +31,20 @@ export default function RenderMovieCard({ item }: { item: Movie }) {
     return null;
   }
 
-  const handlePress = () =>{
-    router.push(`/pages/moviedetails/${item.id}`)
+  if (Loading) {
+    return (
+      <View style={styles.movieCard}>
+        <Skeleton width={200} height={300} borderRadius={10} />
+        <Skeleton width={180} height={20} style={{ marginTop: 10 }} />
+        <Skeleton width={150} height={15} style={{ marginTop: 8 }} />
+        <Skeleton width={100} height={15} style={{ marginTop: 5 }} />
+      </View>
+    );
   }
+
+  const handlePress = () => {
+    router.push(`/pages/moviedetails/${item.id}`);
+  };
 
   return (
     <Pressable onPress={handlePress}>

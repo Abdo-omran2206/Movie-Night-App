@@ -16,12 +16,11 @@ import {
   Modal,
   ScrollView,
   TextInput,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import { fetchFilter, search } from "@/app/api/main";
 import { Ionicons } from "@expo/vector-icons";
 import RenderMovieCard from "@/app/components/ExploreCard";
-import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
 export default function Explore() {
   const [fontsLoaded] = useFonts({
@@ -214,186 +213,194 @@ export default function Explore() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
     <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filters</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
+      <View style={{ flex: 1, backgroundColor: "#0a0a0a", paddingTop: 20 }}>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Filters</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.filtersSection}>
-                <Text style={styles.filterGroupTitle}>🎬 Type</Text>
-                <View style={styles.filterGroup}>
-                  {["movie", "tv"].map((item) => (
-                    <TouchableOpacity
-                      key={item}
-                      onPress={() => setType(item as any)}
-                      style={[
-                        styles.filterButton,
-                        type === item && styles.filterButtonActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.filterText,
-                          type === item && styles.filterTextActive,
-                        ]}
-                      >
-                        {item === "movie" ? "Movie" : "TV Show"}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.filterGroupTitle}>⭐ Status</Text>
-                <View style={styles.filterGroup}>
-                  {["popular", "top_rated", "upcoming", "now_playing"].map(
-                    (item) => (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.filtersSection}>
+                  <Text style={styles.filterGroupTitle}>🎬 Type</Text>
+                  <View style={styles.filterGroup}>
+                    {["movie", "tv"].map((item) => (
                       <TouchableOpacity
                         key={item}
-                        onPress={() => setStatus(item as any)}
+                        onPress={() => setType(item as any)}
                         style={[
                           styles.filterButton,
-                          status === item && styles.filterButtonActive,
+                          type === item && styles.filterButtonActive,
                         ]}
                       >
                         <Text
                           style={[
                             styles.filterText,
-                            status === item && styles.filterTextActive,
+                            type === item && styles.filterTextActive,
                           ]}
                         >
-                          {item === "popular"
-                            ? "Popular"
-                            : item === "top_rated"
-                              ? "Top Rated"
-                              : item === "upcoming"
-                                ? "Upcoming"
-                                : "Now Playing"}
+                          {item === "movie" ? "Movie" : "TV Show"}
                         </Text>
                       </TouchableOpacity>
-                    ),
-                  )}
-                </View>
+                    ))}
+                  </View>
 
-                <Text style={styles.filterGroupTitle}>📅 Year</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.yearScrollContainer}
-                >
-                  {years.map((y) => (
-                    <TouchableOpacity
-                      key={y}
-                      onPress={() => setYear(y === "All" ? "" : y)}
-                      style={[
-                        styles.yearButton,
-                        (year === y || (y === "All" && year === "")) &&
-                          styles.filterButtonActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.filterText,
-                          (year === y || (y === "All" && year === "")) &&
-                            styles.filterTextActive,
-                        ]}
-                      >
-                        {y}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                  <Text style={styles.filterGroupTitle}>⭐ Status</Text>
+                  <View style={styles.filterGroup}>
+                    {["popular", "top_rated", "upcoming", "now_playing"].map(
+                      (item) => (
+                        <TouchableOpacity
+                          key={item}
+                          onPress={() => setStatus(item as any)}
+                          style={[
+                            styles.filterButton,
+                            status === item && styles.filterButtonActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.filterText,
+                              status === item && styles.filterTextActive,
+                            ]}
+                          >
+                            {item === "popular"
+                              ? "Popular"
+                              : item === "top_rated"
+                                ? "Top Rated"
+                                : item === "upcoming"
+                                  ? "Upcoming"
+                                  : "Now Playing"}
+                          </Text>
+                        </TouchableOpacity>
+                      ),
+                    )}
+                  </View>
 
-                <Text style={styles.filterGroupTitle}>🌍 Country</Text>
-                <View style={styles.filterGroup}>
-                  {countries.map((item) => (
-                    <TouchableOpacity
-                      key={item.code}
-                      onPress={() => setCountry(item.code)}
-                      style={[
-                        styles.filterButton,
-                        country === item.code && styles.filterButtonActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.filterText,
-                          country === item.code && styles.filterTextActive,
-                        ]}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.filterGroupTitle}>🎭 Genres</Text>
-                <View style={styles.filterGroup}>
-                  {genres.map((item) => {
-                    const active = selectedGenres.includes(item.id);
-                    return (
+                  <Text style={styles.filterGroupTitle}>📅 Year</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.yearScrollContainer}
+                  >
+                    {years.map((y) => (
                       <TouchableOpacity
-                        key={item.id}
-                        onPress={() => toggleGenre(item.id)}
+                        key={y}
+                        onPress={() => setYear(y === "All" ? "" : y)}
                         style={[
-                          styles.filterButton,
-                          active && styles.filterButtonActive,
+                          styles.yearButton,
+                          (year === y || (y === "All" && year === "")) &&
+                            styles.filterButtonActive,
                         ]}
                       >
                         <Text
                           style={[
                             styles.filterText,
-                            active && styles.filterTextActive,
+                            (year === y || (y === "All" && year === "")) &&
+                              styles.filterTextActive,
                           ]}
                         >
-                          {item.name}
+                          {y}
                         </Text>
                       </TouchableOpacity>
-                    );
-                  })}
+                    ))}
+                  </ScrollView>
+
+                  <Text style={styles.filterGroupTitle}>🌍 Country</Text>
+                  <View style={styles.filterGroup}>
+                    {countries.map((item) => (
+                      <TouchableOpacity
+                        key={item.code}
+                        onPress={() => setCountry(item.code)}
+                        style={[
+                          styles.filterButton,
+                          country === item.code && styles.filterButtonActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.filterText,
+                            country === item.code && styles.filterTextActive,
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <Text style={styles.filterGroupTitle}>🎭 Genres</Text>
+                  <View style={styles.filterGroup}>
+                    {genres.map((item) => {
+                      const active = selectedGenres.includes(item.id);
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          onPress={() => toggleGenre(item.id)}
+                          style={[
+                            styles.filterButton,
+                            active && styles.filterButtonActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.filterText,
+                              active && styles.filterTextActive,
+                            ]}
+                          >
+                            {item.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
-            </ScrollView>
+              </ScrollView>
 
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.applyButtonText}>Apply Filters</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.applyButtonText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {renderHeader}
-      {(loading || isSearching) &&
-      items.length === 0 &&
-      searchResults.length === 0 ? (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <ActivityIndicator size="large" color="#E50914" />
-        </View>
-      ) : (
+        {renderHeader}
         <FlatList
-          data={query.trim().length > 2 ? searchResults : items}
+          data={
+            (loading || isSearching) &&
+            items.length === 0 &&
+            searchResults.length === 0
+              ? Array.from({ length: 10 }).map((_, i) => ({ id: i }))
+              : query.trim().length > 2
+                ? searchResults
+                : items
+          }
           keyExtractor={(item, index) =>
             item.id?.toString() || index.toString()
           }
           numColumns={2}
-          renderItem={({ item }) => <RenderMovieCard item={item} />}
+          renderItem={({ item }) => (
+            <RenderMovieCard
+              item={item}
+              Loading={
+                (loading || isSearching) &&
+                items.length === 0 &&
+                searchResults.length === 0
+              }
+            />
+          )}
           contentContainerStyle={styles.listContainer}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
@@ -409,9 +416,8 @@ export default function Explore() {
             ) : null
           }
         />
-      )}
+      </View>
     </View>
-    </SafeAreaView>
   );
 }
 
@@ -419,7 +425,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: "#0a0a0a",
     paddingBottom: 10,
-    width:width,
+    width: width,
   },
   headerTop: {
     paddingHorizontal: 20,

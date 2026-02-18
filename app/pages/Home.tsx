@@ -1,6 +1,6 @@
 import { fetchMovies } from "@/app/api/main";
 import { useFonts } from "expo-font";
-import React , { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -13,6 +13,8 @@ import {
 import Swiper from "react-native-swiper";
 import RenderMovieCard from "@/app/components/MovieCard";
 import Trend from "@/app/components/treanding";
+
+import Skeleton from "@/app/components/Skeleton";
 
 type Movie = {
   id: number;
@@ -30,7 +32,7 @@ export default function Home() {
   const [upcoming, setUpcoming] = useState<Movie[]>([]);
   const [nowPlaying, setNowPlaying] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
-  const { height } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   useEffect(() => {
     async function loadData() {
       try {
@@ -60,37 +62,47 @@ export default function Home() {
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
   });
 
-  if (!fontsLoaded || loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#E50914" />
-        <Text style={styles.loaderText}>Loading movies...</Text>
-      </View>
-    );
-  }
+  const skeletonData = Array.from({ length: 5 }).map((_, index) => ({
+    id: index,
+  }));
 
   return (
     <ScrollView style={{ backgroundColor: "#000", flex: 1 }}>
       {/* 🎬 Hero Swiper */}
-      <Swiper
-        style={{ height: height *  0.48}}
-        showsPagination={true}
-        dotColor="gray"
-        activeDotColor="#E50914"
-        loop
-        autoplay
-        autoplayTimeout={5}
-      >
-        {trending.map((item) => (
-          <Trend
-            key={item.id}
-            cover={`https://image.tmdb.org/t/p/w780${item.backdrop_path}`}
-            movieTitle={item.title || item.name || "Untitled"}
-            id={item.id}
-            rating={item.vote_average}
-          />
-        ))}
-      </Swiper>
+      {loading ? (
+        <View style={{ height: height * 0.48, width: width }}>
+          <Skeleton width="100%" height="100%" borderRadius={0} />
+          <View style={{ position: "absolute", bottom: 40, left: 20 }}>
+            <Skeleton width={200} height={40} borderRadius={4} />
+            <Skeleton
+              width={100}
+              height={20}
+              borderRadius={4}
+              style={{ marginTop: 10 }}
+            />
+          </View>
+        </View>
+      ) : (
+        <Swiper
+          style={{ height: height * 0.48 }}
+          showsPagination={true}
+          dotColor="gray"
+          activeDotColor="#E50914"
+          loop
+          autoplay
+          autoplayTimeout={5}
+        >
+          {trending.map((item) => (
+            <Trend
+              key={item.id}
+              cover={`https://image.tmdb.org/t/p/w780${item.backdrop_path}`}
+              movieTitle={item.title || item.name || "Untitled"}
+              id={item.id}
+              rating={item.vote_average}
+            />
+          ))}
+        </Swiper>
+      )}
 
       {/* Sections */}
       <View style={styles.sectionHeader}>
@@ -99,8 +111,10 @@ export default function Home() {
       </View>
       <FlatList
         horizontal
-        data={topRated}
-        renderItem={({ item }) => <RenderMovieCard item={item} />}
+        data={loading ? skeletonData : topRated}
+        renderItem={({ item }) => (
+          <RenderMovieCard item={item as any} Loading={loading} />
+        )}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
       />
@@ -111,8 +125,10 @@ export default function Home() {
       </View>
       <FlatList
         horizontal
-        data={popular}
-        renderItem={({ item }) => <RenderMovieCard item={item} />}
+        data={loading ? skeletonData : popular}
+        renderItem={({ item }) => (
+          <RenderMovieCard item={item as any} Loading={loading} />
+        )}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
       />
@@ -123,8 +139,10 @@ export default function Home() {
       </View>
       <FlatList
         horizontal
-        data={upcoming}
-        renderItem={({ item }) => <RenderMovieCard item={item} />}
+        data={loading ? skeletonData : upcoming}
+        renderItem={({ item }) => (
+          <RenderMovieCard item={item as any} Loading={loading} />
+        )}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
       />
@@ -135,8 +153,10 @@ export default function Home() {
       </View>
       <FlatList
         horizontal
-        data={nowPlaying}
-        renderItem={({ item }) => <RenderMovieCard item={item} />}
+        data={loading ? skeletonData : nowPlaying}
+        renderItem={({ item }) => (
+          <RenderMovieCard item={item as any} Loading={loading} />
+        )}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
       />

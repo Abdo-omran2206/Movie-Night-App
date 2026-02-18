@@ -2,6 +2,7 @@ import { useFonts } from "expo-font";
 import { router } from "expo-router";
 import React from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
+import Skeleton from "./Skeleton";
 
 type Movie = {
   id: number;
@@ -16,17 +17,45 @@ type Movie = {
   category?: string;
 };
 
-export default function RenderMovieCard({ item }: { item: Movie }) {
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
+export default function RenderMovieCard({
+  item,
+  Loading,
+}: {
+  item: Movie;
+  Loading?: boolean;
+}) {
+  if (Loading) {
+    return (
+      <View style={styles.cardContainer}>
+        <View style={styles.movieCard}>
+          <Skeleton width="100%" height={260} borderRadius={12} />
+          <Skeleton
+            width="90%"
+            height={20}
+            style={{ marginTop: 10, alignSelf: "center" }}
+          />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              paddingHorizontal: 8,
+              marginTop: 10,
+            }}
+          >
+            <Skeleton width={40} height={15} />
+            <Skeleton width={40} height={15} />
+          </View>
+          <Skeleton
+            width="60%"
+            height={12}
+            style={{ marginTop: 10, marginLeft: 8, marginBottom: 10 }}
+          />
+        </View>
+      </View>
+    );
+  }
 
-  if (!fontsLoaded) return null;
-
-  const isTV =
-    item.media_type === "tv" ||
-    (!!item.name && !item.title);
+  const isTV = item.media_type === "tv" || (!!item.name && !item.title);
 
   const handlePress = () => {
     if (isTV) {
@@ -72,8 +101,8 @@ export default function RenderMovieCard({ item }: { item: Movie }) {
             {item.release_date
               ? item.release_date.slice(0, 4)
               : item.first_air_date
-              ? item.first_air_date.slice(0, 4)
-              : ""}
+                ? item.first_air_date.slice(0, 4)
+                : ""}
           </Text>
         </View>
 
