@@ -238,6 +238,19 @@ export default function MovieDetails() {
           showsHorizontalScrollIndicator={false}
         />
       </View>
+      {movie?.recommendations?.results?.length > 0 && (
+        <View style={styles.castSection}>
+          <Text style={styles.castTitle}>recommendations Movies</Text>
+          <View style={styles.underline}></View>
+          <FlatList
+            horizontal
+            data={movie.recommendations.results}
+            renderItem={({ item }) => <RenderMovieCard item={item} />}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      )}
       {movie?.similar?.results?.length > 0 && (
         <View style={styles.castSection}>
           <Text style={styles.castTitle}>Similar Movies</Text>

@@ -1,4 +1,4 @@
-const api_key = "";
+const api_key = "46c6b94ccce1c631a65491288f4b23b1";
 const base_url = "https://api.themoviedb.org/3";
 
 // Reusable fetch function
@@ -33,7 +33,7 @@ export async function search(query: string, page: number) {
 export async function getMovieById(movieid: string) {
   try {
     const response = await fetch(
-      `${base_url}/movie/${movieid}?api_key=${api_key}&language=en-US&append_to_response=credits,similar,videos`
+      `${base_url}/movie/${movieid}?api_key=${api_key}&language=en-US&append_to_response=credits,similar,videos,recommendations`
     );
 
     if (!response.ok) {
