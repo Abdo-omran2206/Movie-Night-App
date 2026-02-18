@@ -28,20 +28,21 @@ The application features a dark, cinematic theme with smooth animations, offerin
 - **Trending Movies**: Large hero cards with backdrop images and movie details
 - **Movie Categories**: Top Rated, Popular, Upcoming, and Now Playing sections
 - **Responsive Design**: Optimized for mobile, tablet, and desktop devices
+- **Skeleton Loading**: Smooth, pulse-animated placeholders for all movie lists and hero cards
 - **Smooth Animations**: Premium hover effects and transition animations throughout
 
 ### 🔍 **Search Functionality**
 
 - **Real-time Search**: Search through thousands of movies and actors instantly
 - **Advanced Filtering**: Narrow down results by genre, rating, and date (Powered by TMDB)
-- **Instant Results**: Fast API responses with smooth loading states
+- **Instant Results**: Fast API responses with pulse-animated skeleton loading
 
 ### 📱 **Immersive Movie Details**
 
 - **Comprehensive Information**: Cast, crew, ratings, genres, and detailed overviews
 - **High-Quality Media**: HD backdrop and poster images
 - **Integrated Playback**: Watch trailers directly in-app via YouTube integration
-- **Similar Content**: Discover related movies and TV shows effortlessly
+- **Similar & Recommended Content**: Discover related movies and TV shows effortlessly with integrated recommendations
 - **Smart Sharing**: Share movies with customizable templates and deep links
 
 ### 👤 **Actor Profiles**
@@ -71,7 +72,6 @@ The application features a dark, cinematic theme with smooth animations, offerin
 - **Dynamic URLs**: Configurable base URLs and slugs for movies/actors
 - **Update Links**: Direct users to app stores with configurable update URLs
 
-
 ## 🛠️ Tech Stack
 
 - **Framework**: [Expo](https://expo.dev/) & [React Native](https://reactnative.dev/)
@@ -80,6 +80,7 @@ The application features a dark, cinematic theme with smooth animations, offerin
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) (Persistent Storage)
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (v3 File-based)
 - **UI/UX**:
+  - `Skeleton Loading`: Custom pulse-animated placeholders for enhanced UX
   - `react-native-reanimated` for smooth animations
   - `expo-linear-gradient` for premium aesthetics
   - `react-native-safe-area-context` for responsive layouts
@@ -118,6 +119,9 @@ Movie-Night-App/
 │   ├── components/
 │   │   ├── Navbar.tsx           # Bottom navigation
 │   │   ├── MovieCard.tsx        # Reusable movie card
+│   │   ├── ExploreCard.tsx      # Specialized card for Explore grid
+│   │   ├── BookmarkCard.tsx     # Specialized card for Bookmark list
+│   │   ├── Skeleton.tsx         # Pulse loading component
 │   │   ├── CastCard.tsx         # Actor card component
 │   │   └── BookmarkModel.tsx    # Bookmark button
 │   ├── pages/
@@ -168,8 +172,7 @@ Movie-Night-App/
    TMDB_API_KEY=your_tmdb_api_key
    ```
 
-
-4. **Launch**
+3. **Launch**
 
    ```bash
    npx expo start
