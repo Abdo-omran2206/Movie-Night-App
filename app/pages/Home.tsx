@@ -1,8 +1,6 @@
 import { fetchMovies } from "@/app/api/main";
-import { useFonts } from "expo-font";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   ScrollView,
   StyleSheet,
@@ -56,11 +54,6 @@ export default function Home() {
     }
     loadData();
   }, []);
-
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
 
   const skeletonData = Array.from({ length: 5 }).map((_, index) => ({
     id: index,

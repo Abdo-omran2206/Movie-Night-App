@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 
+import Skeleton from "./Skeleton";
+
 interface Bookmark {
   id: number;
   backdrop_path: string;
@@ -25,10 +27,64 @@ interface Bookmark {
 export default function BookmarkCard({
   item,
   onRemove,
+  Loading,
 }: {
   item: Bookmark;
   onRemove: (id: string) => void;
+  Loading?: boolean;
 }) {
+  if (Loading) {
+    return (
+      <View style={styles.card}>
+        <View
+          style={[
+            styles.bgImage,
+            { backgroundColor: "#1a1a1a", padding: 10, flexDirection: "row" },
+          ]}
+        >
+          <Skeleton width={100} height={150} borderRadius={8} />
+          <View
+            style={{ flex: 1, marginLeft: 15, justifyContent: "space-between" }}
+          >
+            <View>
+              <Skeleton width="80%" height={24} borderRadius={4} />
+              <Skeleton
+                width={60}
+                height={15}
+                borderRadius={4}
+                style={{ marginTop: 8 }}
+              />
+              <Skeleton
+                width="100%"
+                height={15}
+                borderRadius={4}
+                style={{ marginTop: 10 }}
+              />
+              <Skeleton
+                width="100%"
+                height={15}
+                borderRadius={4}
+                style={{ marginTop: 5 }}
+              />
+              <Skeleton
+                width="70%"
+                height={15}
+                borderRadius={4}
+                style={{ marginTop: 5 }}
+              />
+            </View>
+            <Skeleton
+              width={30}
+              height={30}
+              borderRadius={15}
+              style={{ alignSelf: "flex-end" }}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   function handlePress() {
     if (item.type === "tv") {
       router.push({

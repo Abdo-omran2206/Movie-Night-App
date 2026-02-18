@@ -2,7 +2,6 @@ import {
   View,
   Text,
   FlatList,
-  ActivityIndicator,
   StyleSheet,
   Dimensions,
   Pressable,
@@ -75,13 +74,13 @@ export default function Bookmark() {
   ];
   // ⏳ حالة التحميل أو الخطوط
 
-  if (!fontsLoaded || loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#E50914" />
-      </View>
-    );
+  if (!fontsLoaded) {
+    return null;
   }
+
+  const skeletonData = Array.from({ length: 5 }).map((_, index) => ({
+    movieID: index.toString(),
+  }));
 
   return (
     <View style={styles.container}>
@@ -127,17 +126,21 @@ export default function Bookmark() {
       </View>
 
       <FlatList
-        data={renderData}
+        data={loading ? skeletonData : renderData}
         keyExtractor={(item) => item.movieID.toString()}
         renderItem={({ item }) => (
-          <BookmarkCard item={item} onRemove={handleRemove} />
+          <BookmarkCard item={item} onRemove={handleRemove} Loading={loading} />
         )}
-        ListEmptyComponent={() => (
-          <View style={styles.center}>
-            <Ionicons name="bookmark-outline" size={60} color="#555" />
-            <Text style={styles.emptyText}>There are no saved movies yet.</Text>
-          </View>
-        )}
+        ListEmptyComponent={() =>
+          !loading ? (
+            <View style={styles.center}>
+              <Ionicons name="bookmark-outline" size={60} color="#555" />
+              <Text style={styles.emptyText}>
+                There are no saved movies yet.
+              </Text>
+            </View>
+          ) : null
+        }
         initialNumToRender={6}
         windowSize={10}
         removeClippedSubviews
