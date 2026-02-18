@@ -6,13 +6,11 @@ import { supabase } from "./api/supabase";
 import { useStore } from "./store/store";
 import { BookmarkManager } from "./api/BookmarkManager";
 import { fetchAppConfig } from "./api/ConfigManager";
+import * as NavigationBar from "expo-navigation-bar";
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// prevent splash auto hide
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -26,10 +24,10 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    // 🛡️ Global Auth Listener
+    // Auth listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_, session) => {
       const { setUser, setMood } = useStore.getState();
 
       if (session?.user) {
@@ -42,26 +40,27 @@ export default function RootLayout() {
       }
     });
 
-    // 🚀 Global Init
+    // App init
     (async () => {
       await fetchAppConfig();
       await BookmarkManager.init();
-      // Initial check
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (user) {
         useStore.getState().setUser(user);
         useStore.getState().setMood("Account");
       }
     })();
 
-    // 🕒 Periodic Config Refresh (Every 30 Minutes)
+    // refresh config every 30 min
     const configInterval = setInterval(
       async () => {
         await fetchAppConfig();
       },
-      1000 * 60 * 30,
+      1000 * 60 * 30
     );
 
     return () => {
@@ -70,15 +69,22 @@ export default function RootLayout() {
     };
   }, []);
 
+  // hide splash + navigation bar AFTER fonts load
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    if (!loaded) return;
+
+    (async () => {
+      await SplashScreen.hideAsync();
+
+      // FULL immersive navigation bar hide
+      await NavigationBar.setPositionAsync("absolute");
+      await NavigationBar.setBackgroundColorAsync("transparent");
+      await NavigationBar.setBehaviorAsync("overlay-swipe");
+      await NavigationBar.setVisibilityAsync("hidden");
+    })();
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }
