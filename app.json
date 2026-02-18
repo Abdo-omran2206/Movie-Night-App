@@ -2,7 +2,7 @@
   "expo": {
     "name": "Movie Night",
     "slug": "MovieNight",
-    "version": "2.5.0",
+    "version": "2.5.1",
     "owner": "akiraomran",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
