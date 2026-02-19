@@ -1,10 +1,12 @@
 // components/moviecard.tsx
 import { useFonts } from "expo-font";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
 
 import Skeleton from "./Skeleton";
+import generateMovieAvatar from "../lib/generateMovieAvatar";
+import { SvgXml } from "react-native-svg";
 
 type Movie = {
   id: number;
@@ -22,6 +24,13 @@ export default function RenderMovieCard({
   item: Movie;
   Loading?: boolean;
 }) {
+  const [imgError, setImgError] = useState(false);
+  const posterUrl = `https://image.tmdb.org/t/p/w500`;
+
+  const fallbackAvatarSvg = generateMovieAvatar(
+    item.title || item.name || "Untitled Movie",
+  );
+
   const [fontsLoaded] = useFonts({
     BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
@@ -50,10 +59,17 @@ export default function RenderMovieCard({
     <Pressable onPress={handlePress}>
       <View style={styles.movieCard}>
         {/* 🎬 Poster */}
-        <Image
-          source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-          style={styles.movieImage}
-        />
+        {!imgError && item.poster_path ? (
+          <Image
+            source={{ uri: posterUrl + item.poster_path }}
+            style={styles.movieImage}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={{ width: 200, height: 300, overflow: "hidden" }}>
+            <SvgXml xml={fallbackAvatarSvg} width="100%" height="100%" />
+          </View>
+        )}
 
         {/* 🎥 Title */}
         <Text style={styles.movieTitle}>

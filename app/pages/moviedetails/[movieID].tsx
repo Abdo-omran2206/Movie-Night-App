@@ -21,6 +21,7 @@ import RenderMovieCard from "../../components/MovieCard";
 import TrailerModal from "@/app/components/ShowTrailer";
 import BookmarkModel from "../../components/BookmarkModel";
 import { useStore } from "../../store/store";
+import StreamModel from "../../components/StreamModel";
 const { width, height } = Dimensions.get("window");
 
 export default function MovieDetails() {
@@ -29,6 +30,7 @@ export default function MovieDetails() {
   const [movie, setMovie] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [showStreamModel, setShowStreamModel] = useState(false);
   const { webSiteUrl, config } = useStore();
   const onShare = async () => {
     try {
@@ -174,10 +176,7 @@ export default function MovieDetails() {
       >
         <TouchableOpacity
           onPress={() =>
-            router.push({
-              pathname: "/pages/player/[player]",
-              params: { player: movie.id },
-            })
+            setShowStreamModel(true)
           }
           style={{
             flexDirection: "row",
@@ -269,6 +268,7 @@ export default function MovieDetails() {
         onClose={() => setShowTrailer(false)}
         movie={movie}
       />
+      <StreamModel contentId={movie.id} visible={showStreamModel} onClose={() => setShowStreamModel(false)}/>
     </ScrollView>
   );
 }

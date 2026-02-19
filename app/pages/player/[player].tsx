@@ -1,13 +1,12 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { View, StyleSheet, StatusBar } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { WebView } from "react-native-webview";
-import { Ionicons } from "@expo/vector-icons";
+
 import * as ScreenOrientation from "expo-screen-orientation";
 
 export default function Player() {
-  const { player: id } = useLocalSearchParams();
-  const router = useRouter();
+  const { player: StreamUrl } = useLocalSearchParams();
 
   useEffect(() => {
     async function changeScreenOrientation() {
@@ -22,19 +21,16 @@ export default function Player() {
     };
   }, []);
 
-  if (!id) return null;
+  if (!StreamUrl) return null;
 
-  const embedUrl = `https://multiembed.mov/?video_id=${encodeURIComponent(
-    id as string,
-  )}&tmdb=1`;
+  const embedUrl = StreamUrl;
 
   return (
     <View style={styles.container}>
       <StatusBar hidden />
-
       {/* 🎬 Video Player - Using Absolute Fill to ensure it takes all screen */}
       <WebView
-        source={{ uri: embedUrl }}
+        source={{ uri: embedUrl } as any}
         style={styles.webview}
         allowsFullscreenVideo
         javaScriptEnabled
@@ -42,11 +38,6 @@ export default function Player() {
         startInLoadingState
         scalesPageToFit
       />
-
-      {/* 🔙 Back Button - Placed after WebView to ensure it stays on top */}
-      {/* <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="chevron-back" size={30} color="#fff" />
-      </TouchableOpacity> */}
     </View>
   );
 }

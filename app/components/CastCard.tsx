@@ -1,6 +1,8 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
+import generateMovieAvatar from "../lib/generateMovieAvatar";
+import { SvgXml } from "react-native-svg";
 
 type CastProps = {
   item: {
@@ -13,6 +15,14 @@ type CastProps = {
 };
 
 export default function RenderCastCard({ item }: CastProps) {
+  const [imgError, setImgError] = useState(false);
+  const posterUrl = `https://image.tmdb.org/t/p/w500`;
+
+  const fallbackAvatarSvg = generateMovieAvatar(
+    item.name || "Untitled Actor",
+    512
+  );
+
   return (
     <Pressable
       onPress={() =>
@@ -23,12 +33,17 @@ export default function RenderCastCard({ item }: CastProps) {
       }
     >
       <View style={styles.card}>
-        <Image
-          source={{
-            uri: `https://image.tmdb.org/t/p/w500${item.profile_path}`,
-          }}
-          style={styles.image}
-        />
+        {!imgError && item.profile_path ? (
+          <Image
+            source={{ uri: posterUrl + item.profile_path }}
+            style={styles.image}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={{ width: 140, height: 180, overflow: "hidden" }}>
+            <SvgXml xml={fallbackAvatarSvg} width="100%" height="100%" />
+          </View>
+        )}
         <View style={styles.textField}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.character}>{item.character}</Text>
@@ -70,7 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: "center",
   },
-  textField:{
-    padding:5
-  }
+  textField: {
+    padding: 5,
+  },
 });
