@@ -15,7 +15,7 @@
 
 ## 📝 Description
 
-**Movie Night** is a sleek, premium mobile and web experience that brings the magic of cinema to your fingertips. Built with modern technologies like **React Native**, **Supabase**, and **Zustand**, it offers an intuitive interface for discovering, searching, and exploring movies. Whether you're looking for trending blockbusters, critically acclaimed films, or hidden gems, Movie Night provides comprehensive movie information including cast details, ratings, genres, and plot summaries.
+**Movie Night** is a sleek, premium mobile and web experience that brings the magic of cinema to your fingertips. Built with modern technologies like **React Native**, **Supabase**, and **Zustand**, it offers an intuitive interface for discovering, searching, and exploring **movies and TV shows**. Whether you're looking for trending blockbusters, binge-worthy series, or hidden gems, Movie Night provides comprehensive information including cast details, ratings, genres, and plot summaries.
 
 The application features a dark, cinematic theme with smooth animations, offering a "Netflix-inspired" premium feel that is fully optimized for all devices, making it your perfect companion for planning your next movie night.
 
@@ -37,13 +37,20 @@ The application features a dark, cinematic theme with smooth animations, offerin
 - **Advanced Filtering**: Narrow down results by genre, rating, and date (Powered by TMDB)
 - **Instant Results**: Fast API responses with pulse-animated skeleton loading
 
-### 📱 **Immersive Movie Details**
+### 📱 **Immersive Movie & TV Details**
 
-- **Comprehensive Information**: Cast, crew, ratings, genres, and detailed overviews
+- **Comprehensive Information**: Cast, crew, ratings, genres, seasons, and detailed overviews
 - **High-Quality Media**: HD backdrop and poster images
-- **Integrated Playback**: Watch trailers directly in-app via YouTube integration
-- **Similar & Recommended Content**: Discover related movies and TV shows effortlessly with integrated recommendations
-- **Smart Sharing**: Share movies with customizable templates and deep links
+-- **Integrated Playback**: Watch trailers directly in-app via YouTube integration
+-- **Similar & Recommended Content**: Discover related movies and TV shows effortlessly with integrated recommendations
+-- **Smart Sharing**: Share movies, TV shows, and seasons with customizable templates and deep links
+
+### 📚 **Bookmarks & Library**
+
+- **Unified Library**: Save movies and TV shows with statuses like _Watching_, _Watch Later_, _Completed_, and _Dropped_
+- **Guest Mode Storage**: Local SQLite-based bookmarks when browsing without an account
+- **Account Mode Storage**: Cloud bookmarks stored in Supabase for cross-device sync
+- **Seamless Migration**: Guest bookmarks automatically sync to the cloud after login or registration
 
 ### 👤 **Actor Profiles**
 
@@ -56,15 +63,14 @@ The application features a dark, cinematic theme with smooth animations, offerin
 
 - **Secure Flow**: Full account management with Sign-in, Sign-up, and Password recovery
 - **Email Verification**: Secure OTP (One-Time Password) verification powered by Supabase Auth
+- **Password Reset**: Two-step recovery flow using Supabase OTP (reset email + in-app token & new password)
 - **Cloud Sync**: Seamlessly sync your bookmarks and preferences across all devices
 - **Guest Mode**: Browse without an account, with option to sync later
 
 ### ⚙️ **App Configuration & Version Management**
 
-> 📖 **For detailed configuration documentation, see [CONFIGURATION_GUIDE.md](./CONFIGURATION_GUIDE.md)**
-
 - **Remote Configuration**: Centralized app settings managed via Supabase
-- **Dynamic Share Templates**: Customizable share messages for movies and actors with placeholder support
+- **Dynamic Share Templates**: Customizable share messages for movies, TV shows, and actors with placeholder support
 - **Version Control System**:
   - **Force Stop**: Maintenance mode with custom messages (blocks app access)
   - **Required Updates**: Enforce minimum app version with blocking screen
@@ -109,35 +115,57 @@ The application features a dark, cinematic theme with smooth animations, offerin
 ```bash
 Movie-Night-App/
 ├── app/
-│   ├── _layout.tsx              # Root layout & auth provider
-│   ├── index.tsx                # Main app entry with navigation
+│   ├── _layout.tsx              # Root layout & navigation shell
+│   ├── index.tsx                # Tab layout and entry screen
 │   ├── api/
-│   │   ├── main.ts              # TMDB API integration
+│   │   ├── main.ts              # TMDB API integration helpers
 │   │   ├── supabase.ts          # Supabase client setup
-│   │   ├── ConfigManager.ts     # App configuration & version control
-│   │   └── BookmarkManager.ts   # Bookmark sync logic
+│   │   ├── ConfigManager.ts     # Remote config & version enforcement
+│   │   ├── BookmarkManager.ts   # Unified guest/account bookmark facade
+│   │   ├── OnlineMood.ts        # Cloud (Supabase) bookmark implementation
+│   │   └── GustMood.ts          # Guest (SQLite) bookmark implementation
 │   ├── components/
-│   │   ├── Navbar.tsx           # Bottom navigation
-│   │   ├── MovieCard.tsx        # Reusable movie card
-│   │   ├── ExploreCard.tsx      # Specialized card for Explore grid
-│   │   ├── BookmarkCard.tsx     # Specialized card for Bookmark list
-│   │   ├── Skeleton.tsx         # Pulse loading component
-│   │   ├── CastCard.tsx         # Actor card component
-│   │   └── BookmarkModel.tsx    # Bookmark button
+│   │   ├── Navbar.tsx           # Bottom navigation bar
+│   │   ├── Banner.tsx           # Home trending hero carousel
+│   │   ├── section.tsx          # Horizontal content rails (home)
+│   │   ├── MovieCard.tsx        # Reusable card for movies/TV
+│   │   ├── ExploreCard.tsx      # Card for Explore grid results
+│   │   ├── BookmarkCard.tsx     # Card for bookmark list
+│   │   ├── TvSeasonCard.tsx     # Card for individual TV seasons
+│   │   ├── CastCard.tsx         # Actor/cast avatar card
+│   │   ├── Skeleton.tsx         # Pulse loading skeletons
+│   │   ├── ShowTrailer.tsx      # YouTube trailer modal
+│   │   ├── StreamModel.tsx      # Watch Now / streaming modal
+│   │   ├── ImageViewer.tsx      # Full-screen image viewer
+│   │   └── BookmarkModel.tsx    # Bookmark button & status selector
+│   ├── lib/
+│   │   └── generateMovieAvatar.ts # Fallback avatar SVG generator
 │   ├── pages/
-│   │   ├── Home.tsx             # Main discovery feed
-│   │   ├── Explore.tsx          # Search & filters
-│   │   ├── Bookmark.tsx         # Saved movies
+│   │   ├── Home.tsx             # Main discovery feed (trending & rails)
+│   │   ├── Explore.tsx          # Search & filters (movies/TV)
+│   │   ├── Bookmark.tsx         # Saved library (guest & account)
 │   │   ├── Profile.tsx          # User account & settings
-│   │   ├── moviedetails/        # Movie detail pages
-│   │   ├── actordata/           # Actor profile pages
-│   │   └── account/             # Auth flows (login, register, OTP)
+│   │   ├── moviedetails/
+│   │   │   └── [movieID].tsx    # Movie details screen
+│   │   ├── tvdetails/
+│   │   │   ├── [tvID].tsx       # TV show details screen
+│   │   │   └── season/
+│   │   │       └── [...slug].tsx # TV season details screen
+│   │   ├── actordata/
+│   │   │   ├── [actorID].tsx    # Actor profile details
+│   │   │   └── Filmography.tsx  # Actor filmography grid
+│   │   ├── player/
+│   │   │   └── [player].tsx     # Embedded WebView player
+│   │   └── account/
+│   │       ├── login.tsx        # Login screen
+│   │       ├── register.tsx     # Registration screen
+│   │       ├── confirm.tsx      # Email OTP confirmation
+│   │       └── resetPassword.tsx # Password reset (OTP + new password)
 │   └── store/
-│       └── store.ts             # Zustand global state
+│       └── store.ts             # Zustand global state & config
 ├── assets/
 │   ├── fonts/                   # Custom fonts
-│   └── images/                  # App icons & assets
-├── CONFIGURATION_GUIDE.md       # Detailed configuration docs
+│   └── images/                  # App icons & artwork
 └── README.md                    # This file
 ```
 
@@ -187,7 +215,7 @@ Movie-Night-App/
 
 ## 📖 Documentation
 
-- **[Configuration Guide](./CONFIGURATION_GUIDE.md)** - Complete guide for app configuration and version management
+- **Product Requirements**: see `prd.md` for detailed product and feature specifications
 - **[Supabase Setup](https://supabase.com/docs)** - Official Supabase documentation
 - **[Expo Docs](https://docs.expo.dev/)** - Expo framework documentation
 - **[TMDB API](https://developers.themoviedb.org/3)** - The Movie Database API reference
@@ -200,11 +228,11 @@ The app supports remote configuration for:
 
 - ✅ Version enforcement (force updates)
 - ✅ Maintenance mode
-- ✅ Dynamic share messages
-- ✅ Configurable URLs and slugs
+- ✅ Dynamic share messages for movies, TV shows, seasons, and actors
+- ✅ Configurable URLs and slugs (movie, TV, actor, base URL)
 - ✅ App store update links
 
-See [CONFIGURATION_GUIDE.md](./CONFIGURATION_GUIDE.md) for detailed instructions.
+Configuration is stored in the Supabase `app_config` table and consumed via the in-app `ConfigManager` and global store.
 
 ---
 

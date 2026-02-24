@@ -1,6 +1,8 @@
+import React, { useEffect, useState } from "react";
+import Swiper from "react-native-swiper";
+import Skeleton from "@/app/components/Skeleton";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
 import {
   Dimensions,
   ImageBackground,
@@ -8,10 +10,12 @@ import {
   Text,
   View,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-const { width , height } = Dimensions.get("window");
+import { fetchMovies } from "../api/main";
+const { width, height } = Dimensions.get("window");
 const SLIDE_HEIGHT = height * 0.45;
 
 type TrendProps = {
@@ -19,9 +23,74 @@ type TrendProps = {
   cover: string;
   movieTitle: string;
   rating?: number;
+  mediaType?: "movie" | "tv";
 };
 
-export default function Trend({ id, cover, movieTitle, rating }: TrendProps) {
+type MovieData = {
+  id: number;
+  backdrop_path: string;
+  title?: string;
+  name?: string;
+  vote_average?: number;
+  media_type?: "movie" | "tv";
+};
+
+export default function Banner() {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<MovieData[]>([]);
+  const { height, width } = useWindowDimensions();
+  useEffect(() => {
+    async function fetchBanner() {
+      const results = await fetchMovies("/trending/all/week");
+      setData(results);
+      setLoading(false);
+    }
+    fetchBanner();
+  }, []);
+
+  return (
+    <View>
+      {/* 🎬 Hero Swiper */}
+      {loading ? (
+        <View style={{ height: height * 0.48, width: width }}>
+          <Skeleton width="100%" height="100%" borderRadius={0} />
+          <View style={{ position: "absolute", bottom: 40, left: 20 }}>
+            <Skeleton width={200} height={40} borderRadius={4} />
+            <Skeleton
+              width={100}
+              height={20}
+              borderRadius={4}
+              style={{ marginTop: 10 }}
+            />
+          </View>
+        </View>
+      ) : (
+        <Swiper
+          style={{ height: height * 0.48 }}
+          showsPagination={true}
+          dotColor="gray"
+          activeDotColor="#E50914"
+          loop
+          autoplay
+          autoplayTimeout={5}
+        >
+          {data.map((item) => (
+            <Trend
+              key={item.id}
+              cover={`https://image.tmdb.org/t/p/w780${item.backdrop_path}`}
+              movieTitle={item.title || item.name || "Untitled"}
+              id={item.id}
+              rating={item.vote_average}
+              mediaType={item.media_type}
+            />
+          ))}
+        </Swiper>
+      )}
+    </View>
+  );
+}
+
+function Trend({ id, cover, movieTitle, rating, mediaType }: TrendProps) {
   const [fontsLoaded] = useFonts({
     BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
@@ -30,10 +99,17 @@ export default function Trend({ id, cover, movieTitle, rating }: TrendProps) {
   if (!fontsLoaded) return null;
 
   const handlePress = () => {
-    router.push({
-      pathname: "/pages/moviedetails/[movieID]",
-      params: { movieID: id.toString() },
-    });
+    if (mediaType === "tv") {
+      router.push({
+        pathname: "/pages/tvdetails/[tvID]",
+        params: { tvID: id.toString() },
+      });
+    } else {
+      router.push({
+        pathname: "/pages/moviedetails/[movieID]",
+        params: { movieID: id.toString() },
+      });
+    }
   };
 
   return (

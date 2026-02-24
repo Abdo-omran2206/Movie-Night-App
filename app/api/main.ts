@@ -1,11 +1,12 @@
-const api_key = "";
+const api_key = process.env.EXPO_PUBLIC_API_KEY;
 const base_url = "https://api.themoviedb.org/3";
 
 // Reusable fetch function
 export async function fetchMovies(endpoint: string) {
+  const separator = endpoint.includes("?") ? "&" : "?";
   try {
     const response = await fetch(
-      `${base_url}${endpoint}?api_key=${api_key}&language=en-US&page=1`
+      `${base_url}${endpoint}${separator}&api_key=${api_key}&page=1`
     );
     const data = await response.json();
     return data.results || [];
@@ -18,14 +19,20 @@ export async function fetchMovies(endpoint: string) {
 export async function search(query: string, page: number) {
   try {
     const response = await fetch(
-      `${base_url}/search/movie?api_key=${api_key}&language=en-US&query=${encodeURIComponent(
+      `${base_url}/search/multi?api_key=${api_key}&language=en-US&query=${encodeURIComponent(
         query
       )}&page=${page}&include_adult=false`
     );
+
     const data = await response.json();
-    return data.results || [];
+
+    const filteredResults = data.results?.filter(
+      (item: any) => item.media_type === "movie" || item.media_type === "tv"
+    );
+
+    return filteredResults || [];
   } catch (error) {
-    console.error(`Error searching movies:`, error);
+    console.error("Error searching movies/tv:", error);
     return [];
   }
 }
@@ -50,7 +57,7 @@ export async function getMovieById(movieid: string) {
 export async function getActorById(actorId: string) {
   try {
     const response = await fetch(
-      `${base_url}/person/${actorId}?api_key=${api_key}&language=en-US&append_to_response=movie_credits,images`
+      `${base_url}/person/${actorId}?api_key=${api_key}&language=en-US&append_to_response=movie_credits,tv_credits,images`
     );
 
     if (!response.ok) {
@@ -87,7 +94,7 @@ export async function getTvById(tvID: string) {
   try {
     // ✅ Fetch TV show details with credits, videos, and similar shows
     const response = await fetch(
-      `${base_url}/tv/${tvID}?api_key=${api_key}&append_to_response=credits,videos,similar`
+      `${base_url}/tv/${tvID}?api_key=${api_key}&append_to_response=credits,videos,similar,recommendations`
     );
 
     if (!response.ok) {
@@ -99,6 +106,22 @@ export async function getTvById(tvID: string) {
   } catch (error) {
     console.error("❌ Error fetching TV details:", error);
     throw error;
+  }
+}
+
+export async function fetchTvSeasonDetails(tvID: string, seasonNumber: string | number) {
+  try {
+    const response = await fetch(
+      `${base_url}/tv/${tvID}/season/${seasonNumber}?api_key=${api_key}&language=en-US&append_to_response=credits,videos,images`,
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch TV season details");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching TV season details:", error);
+    return null;
   }
 }
 

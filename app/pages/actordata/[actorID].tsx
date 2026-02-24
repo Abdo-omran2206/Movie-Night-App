@@ -12,8 +12,6 @@ import {
   TouchableOpacity,
   Share,
   ImageBackground,
-  Modal,
-  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getActorById, getActorImages } from "../../api/main";
@@ -22,6 +20,7 @@ import RenderMovieCard from "../../components/MovieCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "../../store/store";
 import { LinearGradient } from "expo-linear-gradient";
+import ImageViewer from "../../components/ImageViewer";
 
 const { width, height } = Dimensions.get("window");
 
@@ -107,40 +106,50 @@ export default function ActorDetails() {
 
       {/* 👤 Professional Header */}
       <View style={styles.headerSection}>
-        <ImageBackground
-          source={{
-            uri: `https://image.tmdb.org/t/p/w780${actor.profile_path}`,
-          }}
-          style={styles.coverImage}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() =>
+            setSelectedImage(
+              `https://image.tmdb.org/t/p/original${actor.profile_path}`,
+            )
+          }
+          style={{ flex: 1 }}
         >
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.8)"]}
-            locations={[0, 0.9, 1]}
-            style={styles.overlay}
-          />
+          <ImageBackground
+            source={{
+              uri: `https://image.tmdb.org/t/p/w780${actor.profile_path}`,
+            }}
+            style={styles.coverImage}
+          >
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.8)"]}
+              locations={[0, 0.9, 1]}
+              style={styles.overlay}
+            />
 
-          {/* Header Buttons */}
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.actionButton}
-            >
-              <Ionicons name="chevron-back" size={28} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onShare} style={styles.actionButton}>
-              <Ionicons name="share-social-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
+            {/* Header Buttons */}
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={styles.actionButton}
+              >
+                <Ionicons name="chevron-back" size={28} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onShare} style={styles.actionButton}>
+                <Ionicons name="share-social-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
 
-          {/* Actor Name & Info Overlay */}
-          <View style={styles.infoOverlay}>
-            <Text style={styles.actorName}>{actor.name}</Text>
-            <Text style={styles.subInfo}>
-              {actor.birthday ? actor.birthday : "N/A"} •{" "}
-              {actor.place_of_birth || "Unknown"}
-            </Text>
-          </View>
-        </ImageBackground>
+            {/* Actor Name & Info Overlay */}
+            <View style={styles.infoOverlay}>
+              <Text style={styles.actorName}>{actor.name}</Text>
+              <Text style={styles.subInfo}>
+                {actor.birthday ? actor.birthday : "N/A"} •{" "}
+                {actor.place_of_birth || "Unknown"}
+              </Text>
+            </View>
+          </ImageBackground>
+        </TouchableOpacity>
       </View>
 
       {/* 📜 Biography Section */}
@@ -157,18 +166,56 @@ export default function ActorDetails() {
       {/* 🎬 Filmography Section */}
       {actor.movie_credits?.cast?.length > 0 && (
         <View style={styles.modernSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.modernSectionHeading}>Filmography</Text>
-            <View style={styles.accentLine} />
+          <View
+            style={[
+              styles.sectionHeader,
+              {
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              },
+            ]}
+          >
+            <View>
+              <Text style={styles.modernSectionHeading}>Filmography</Text>
+              <View style={styles.accentLine} />
+            </View>
+            {actor.movie_credits.cast.length > 7 && (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/pages/actordata/Filmography",
+                    params: {
+                      actorID: actor.id,
+                      actorName: actor.name,
+                    },
+                  })
+                }
+              >
+                <Text
+                  style={{
+                    color: "#E50914",
+                    fontFamily: "BebasNeue",
+                    fontSize: 18,
+                  }}
+                >
+                  See All
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           <FlatList
             horizontal
-            data={actor.movie_credits.cast.sort((a: any, b: any) =>
-              (b.release_date || b.first_air_date || "").localeCompare(
-                a.release_date || a.first_air_date || "",
-              ),
+            data={[...actor.movie_credits.cast ,...actor.tv_credits.cast]
+              .sort((a: any, b: any) =>
+                (b.release_date || b.first_air_date || "").localeCompare(
+                  a.release_date || a.first_air_date || "",
+                ),
+              )
+              .slice(0, 7)}
+            renderItem={({ item }) => (
+              <RenderMovieCard item={item} starColor="#E50914" />
             )}
-            renderItem={({ item }) => <RenderMovieCard item={item} />}
             keyExtractor={(item, index) => item.id.toString() + index}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingLeft: 20, paddingRight: 10 }}
@@ -240,33 +287,11 @@ export default function ActorDetails() {
       )}
 
       {/* 🖼️ Full Screen Image Viewer */}
-      <Modal
+      <ImageViewer
         visible={selectedImage !== null}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSelectedImage(null)}
-      >
-        <Pressable
-          style={styles.modalBackground}
-          onPress={() => setSelectedImage(null)}
-        >
-          <View style={styles.modalContainer}>
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={styles.fullScreenImage}
-                resizeMode="contain"
-              />
-            )}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setSelectedImage(null)}
-            >
-              <Ionicons name="close" size={30} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
+        imageUrl={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
 
       <View style={{ height: 50 }} />
     </ScrollView>
@@ -385,22 +410,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.95)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: width,
-    height: height,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fullScreenImage: {
-    width: "100%",
-    height: "80%",
   },
   closeButton: {
     position: "absolute",

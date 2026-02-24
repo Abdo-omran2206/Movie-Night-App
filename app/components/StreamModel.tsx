@@ -23,22 +23,44 @@ const { height } = Dimensions.get("window");
 function makeAvatar(
   seed: string,
   size: number = 100,
-  options?: Partial<StyleOptions<typeof bottts>>
+  options?: Partial<StyleOptions<typeof bottts>>,
 ): string {
   return createAvatar(bottts, { seed, size, ...options }).toString();
 }
 
+const getStreamUrl = (
+  templateUrl: string,
+  id: string,
+  season: string,
+  episode: string,
+) => {
+  if (!templateUrl) return "";
+  if (templateUrl.includes("{id}")) {
+    return templateUrl
+      .replace(/{id}/g, id)
+      .replace(/{s}/g, season)
+      .replace(/{e}/g, episode);
+  }
+  return `${templateUrl}${id}/${season}/${episode}`;
+};
+
 export default function StreamModal({
   contentId,
   visible,
+  contentType,
+  seasonNumber,
+  episodeNumber,
   onClose,
 }: {
   contentId: number;
   visible: boolean;
+  contentType: "movie" | "tv";
+  seasonNumber?: number;
+  episodeNumber?: number;
   onClose: () => void;
 }) {
   const [streams, setStreams] = useState<
-    { name: string; full_url: string; stream_domain?: string }[]
+    { name: string; full_url?: string; full_url_tv?: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -51,9 +73,11 @@ export default function StreamModal({
 
   const fetchStreams = async () => {
     setLoading(true);
+    const endpoint = contentType === "movie" ? "full_url" : "full_url_tv";
+
     const { data, error } = await supabase
       .from("stream_urls")
-      .select("full_url,name")
+      .select(`name, ${endpoint}`)
       .eq("is_active", true);
 
     if (error) {
@@ -67,10 +91,25 @@ export default function StreamModal({
 
   const openStream = (url: string, index: number) => {
     setSelectedIndex(index);
-    router.push({
-      pathname: "/pages/player/[player]",
-      params: { player: encodeURIComponent(url + contentId) },
-    });
+    if (contentType === "movie") {
+      router.push({
+        pathname: "/pages/player/[player]",
+        params: { player: encodeURIComponent(url + contentId) },
+      });
+    } else {
+      const tvUrl = getStreamUrl(
+        url,
+        contentId.toString(),
+        seasonNumber ? seasonNumber.toString() : "1",
+        episodeNumber ? episodeNumber.toString() : "1",
+      );
+      router.push({
+        pathname: "/pages/player/[player]",
+        params: {
+          player: encodeURIComponent(tvUrl),
+        },
+      });
+    }
   };
 
   return (
@@ -81,10 +120,18 @@ export default function StreamModal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
 
       {/* Backdrop */}
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+      <TouchableOpacity
+        style={styles.backdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      />
 
       {/* Sheet */}
       <View style={styles.sheet}>
@@ -97,7 +144,11 @@ export default function StreamModal({
             <Text style={styles.headerEyebrow}>SELECT SOURCE</Text>
             <Text style={styles.headerTitle}>Available Streams</Text>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeBtn}
+            activeOpacity={0.7}
+          >
             <Text style={styles.closeBtnText}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -115,7 +166,9 @@ export default function StreamModal({
           <View style={styles.centerState}>
             <Text style={styles.emptyIcon}>⚠</Text>
             <Text style={styles.stateTitle}>No Streams Found</Text>
-            <Text style={styles.stateText}>Check back soon or try refreshing.</Text>
+            <Text style={styles.stateText}>
+              Check back soon or try refreshing.
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -127,28 +180,54 @@ export default function StreamModal({
               const isSelected = selectedIndex === index;
               const label = item.name ?? `Server Stream ${index + 1}`;
               // ✅ Unique seed per item so each card gets a different avatar
-              const avatarSvg = makeAvatar(item.name ?? `stream-${index}`, 100, { backgroundColor: ["222"] });
+              const avatarSvg = makeAvatar(
+                item.name ?? `stream-${index}`,
+                100,
+                { backgroundColor: ["222"] },
+              );
 
               return (
                 <TouchableOpacity
-                  onPress={() => openStream(item.full_url, index)}
-                  style={[styles.streamCard, isSelected && styles.streamCardSelected]}
+                  onPress={() =>
+                    openStream(item.full_url || item.full_url_tv || "", index)
+                  }
+                  style={[
+                    styles.streamCard,
+                    isSelected && styles.streamCardSelected,
+                  ]}
                   activeOpacity={0.75}
                 >
                   {/* Left accent bar */}
-                  <View style={[styles.cardAccent, isSelected && styles.cardAccentActive]} />
+                  <View
+                    style={[
+                      styles.cardAccent,
+                      isSelected && styles.cardAccentActive,
+                    ]}
+                  />
 
                   {/* Unique avatar per stream */}
-                  <View style={[styles.streamIconWrap, isSelected && styles.streamIconWrapActive]}>
+                  <View
+                    style={[
+                      styles.streamIconWrap,
+                      isSelected && styles.streamIconWrapActive,
+                    ]}
+                  >
                     <SvgXml xml={avatarSvg} width="90%" height="90%" />
                   </View>
 
                   {/* Info */}
                   <View style={styles.streamInfo}>
-                    <Text style={[styles.streamName, isSelected && styles.streamNameActive]}>
+                    <Text
+                      style={[
+                        styles.streamName,
+                        isSelected && styles.streamNameActive,
+                      ]}
+                    >
                       {label}
                     </Text>
-                    <Text style={styles.streamSub}>Stream Server {index + 1}</Text>
+                    <Text style={styles.streamSub}>
+                      Stream Server {index + 1}
+                    </Text>
                   </View>
 
                   {/* Play icon — color reacts to selected state */}
@@ -326,7 +405,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#EBEBF5",
     letterSpacing: -0.2,
-
   },
   streamNameActive: {
     color: "#FF6B81",

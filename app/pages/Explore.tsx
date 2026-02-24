@@ -126,7 +126,7 @@ export default function Explore() {
 
   // 🔍 Handle Search Logic
   useEffect(() => {
-    if (query.trim().length > 2) {
+    if (query.trim().length > 1) {
       if (typingTimeout.current) clearTimeout(typingTimeout.current);
       typingTimeout.current = setTimeout(async () => {
         setIsSearching(true);
@@ -142,25 +142,28 @@ export default function Explore() {
 
   // 🚀 Load More Logic (Handles both Explore & Search)
   const loadMore = async () => {
-    if (loadingMore || loading || isSearching) return;
+    if (loadingMore || loading) return;
 
-    if (query.trim().length > 2) {
-      // Load more search results
-      setIsSearching(true);
+    if (query.trim().length > 1) {
+      // Search pagination
+      setLoadingMore(true);
       const nextPage = searchPage + 1;
+
       const data = await search(query, nextPage);
+
       setSearchResults((prev) => [...prev, ...(data || [])]);
       setSearchPage(nextPage);
-      setIsSearching(false);
+      setLoadingMore(false);
     } else {
-      // Load more explore results
+      // Explore pagination
       setLoadingMore(true);
-      loadData(page + 1, false);
+      await loadData(page + 1, false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    if (query.trim().length <= 2) {
+    if (query.trim().length <= 1) {
       loadData(1, true);
     }
   }, [loadData, query]);
@@ -383,7 +386,7 @@ export default function Explore() {
             items.length === 0 &&
             searchResults.length === 0
               ? Array.from({ length: 10 }).map((_, i) => ({ id: i }))
-              : query.trim().length > 2
+              : query.trim().length > 1
                 ? searchResults
                 : items
           }
@@ -391,6 +394,7 @@ export default function Explore() {
             item.id?.toString() || index.toString()
           }
           numColumns={2}
+          horizontal={false}
           renderItem={({ item }) => (
             <RenderMovieCard
               item={item}

@@ -17,10 +17,12 @@ import { useFonts } from "expo-font";
 import { getTvById } from "../../api/main";
 import RenderCastCard from "@/app/components/CastCard";
 import RenderMovieCard from "../../components/MovieCard";
+import TvSeasonCard from "../../components/TvSeasonCard";
 import BookmarkModel from "../../components/BookmarkModel";
 import TrailerModal from "@/app/components/ShowTrailer";
 import React, { useEffect, useState } from "react";
 import { useStore } from "../../store/store";
+import ImageViewer from "../../components/ImageViewer";
 
 const { width, height } = Dimensions.get("window");
 
@@ -30,14 +32,23 @@ export default function TvDetails() {
   const [tv, setTv] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
-  const { webSiteUrl } = useStore();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { webSiteUrl, config } = useStore();
 
   const onShare = async () => {
     try {
+      const shareUrl = `${webSiteUrl}${config?.tv_slug || "/tv/"}${tv.id}`;
+
+      // Use template from config or fallback to default message
+      const shareMessage = config?.share_text_template_tv
+        ? config.share_text_template_tv
+            .replace("{title}", tv?.name || "this tv show")
+            .replace("{url}", shareUrl)
+        : `Check out ${tv?.name} on Movie Night!\n${shareUrl}`;
+
       await Share.share({
-        message: `Check out ${tv?.name} on Movie Night!
-        ${webSiteUrl}/tvdetails/index.html?tvID=${tv.id}
-        `,
+        title: "Movie Night",
+        message: shareMessage,
       });
     } catch (error: any) {
       console.error(error.message);
@@ -113,14 +124,22 @@ export default function TvDetails() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.posterWrapper}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() =>
+              setSelectedImage(
+                `https://image.tmdb.org/t/p/original${tv.poster_path}`,
+              )
+            }
+            style={styles.posterWrapper}
+          >
             <Image
               source={{
                 uri: `https://image.tmdb.org/t/p/w500${tv.poster_path}`,
               }}
               style={styles.movieposter}
             />
-          </View>
+          </TouchableOpacity>
         </ImageBackground>
       </View>
 
@@ -138,7 +157,10 @@ export default function TvDetails() {
       <View style={styles.metaRow}>
         <Text style={styles.metaBox}>{tv.first_air_date}</Text>
         <Text style={styles.metaBox}>{tv.number_of_seasons} Seasons</Text>
-        <Text style={styles.metaBox}>⭐ {tv.vote_average?.toFixed(1)}/10</Text>
+        <Text style={styles.metaBox}>
+          <Ionicons name="star" size={15} color="#FFD700" />{" "}
+          {tv.vote_average?.toFixed(1)}/10
+        </Text>
       </View>
 
       {/* 🎭 Genres */}
@@ -159,32 +181,53 @@ export default function TvDetails() {
           marginTop: 5,
         }}
       >
-        <TouchableOpacity
-          onPress={() => setShowTrailer(true)}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: "#E50914",
-            paddingVertical: 12,
-            paddingHorizontal: 25,
-            borderRadius: 30,
-            elevation: 5,
-          }}
-        >
-          <Ionicons name="play-circle-outline" size={24} color="#fff" />
-          <Text
+        {tv.videos.results.find(
+          (vid: any) => vid.type === "Trailer" && vid.site === "YouTube",
+        ) && (
+          <TouchableOpacity
+            onPress={() => setShowTrailer(true)}
             style={{
-              color: "#fff",
-              fontSize: 17,
-              fontWeight: "600",
-              marginLeft: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#E50914",
+              paddingVertical: 12,
+              paddingHorizontal: 25,
+              borderRadius: 30,
+              elevation: 5,
             }}
           >
-            Watch Trailer
-          </Text>
-        </TouchableOpacity>
+            <Ionicons name="play-circle-outline" size={24} color="#fff" />
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 17,
+                fontWeight: "600",
+                marginLeft: 8,
+              }}
+            >
+              Watch Trailer
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
-
+      {tv.seasons && tv.seasons?.length > 0 && (
+        <View style={styles.castSection}>
+          <Text style={styles.castTitle}>Seasons</Text>
+          <View style={styles.underline}></View>
+          <FlatList
+            horizontal
+            data={tv.seasons}
+            renderItem={({ item }) => (
+              <TvSeasonCard
+                item={item as any}
+                tvID={typeof tvID === "string" ? tvID : tvID?.[0]}
+              />
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      )}
       {/* 👥 Cast */}
       {tv.credits?.cast?.length > 0 && (
         <View style={styles.castSection}>
@@ -199,6 +242,21 @@ export default function TvDetails() {
           />
         </View>
       )}
+      {tv?.recommendations?.results?.length > 0 && (
+        <View style={styles.castSection}>
+          <Text style={styles.castTitle}>recommendations Movies</Text>
+          <View style={styles.underline}></View>
+          <FlatList
+            horizontal
+            data={tv.recommendations.results}
+            renderItem={({ item }) => (
+              <RenderMovieCard item={item} starColor="#E50914" />
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      )}
 
       {/* 🎬 Similar Shows */}
       {tv.similar?.results?.length > 0 && (
@@ -208,7 +266,9 @@ export default function TvDetails() {
           <FlatList
             horizontal
             data={tv.similar.results}
-            renderItem={({ item }) => <RenderMovieCard item={item} />}
+            renderItem={({ item }) => (
+              <RenderMovieCard item={item} starColor="#E50914" />
+            )}
             keyExtractor={(item) => item.id.toString()}
             showsHorizontalScrollIndicator={false}
           />
@@ -219,6 +279,11 @@ export default function TvDetails() {
         visible={showTrailer}
         onClose={() => setShowTrailer(false)}
         movie={tv}
+      />
+      <ImageViewer
+        visible={selectedImage !== null}
+        imageUrl={selectedImage}
+        onClose={() => setSelectedImage(null)}
       />
     </ScrollView>
   );

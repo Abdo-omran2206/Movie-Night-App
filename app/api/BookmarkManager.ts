@@ -89,7 +89,7 @@ export const BookmarkManager = {
     const guestBookmarks = await GuestMood.getBookmarks();
     
     if (guestBookmarks && guestBookmarks.length > 0) {
-      // console.log(`Syncing ${guestBookmarks.length} bookmarks to cloud...`);
+      //  (`Syncing ${guestBookmarks.length} bookmarks to cloud...`);
       
       // Upload all bookmarks using OnlineMood
       for (const item of guestBookmarks) {

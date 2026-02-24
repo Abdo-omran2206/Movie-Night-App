@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
   ToastAndroid,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BookmarkManager } from "../api/BookmarkManager";
@@ -23,7 +24,7 @@ import Constants from "expo-constants";
 const { width } = Dimensions.get("window");
 
 export default function Account() {
-  const { mood, setMood, user, setUser, setPage } = useStore();
+  const { mood, setMood, user, setUser, setPage, config } = useStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const currentVersion = Constants.expoConfig?.version || "1.0.0";
@@ -34,6 +35,27 @@ export default function Account() {
     dropped: 0,
     total: 0,
   });
+  const ifLatestVersion = config?.latest_app_version === currentVersion;
+
+  const updateApp = () => {
+    if (!ifLatestVersion && config?.latest_app_version) {
+      Alert.alert(
+        "Update Available",
+        `A new version (${config?.latest_app_version}) is available. Please update to the latest version for the best experience.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Update",
+            onPress: async () => {
+              const url = config?.app_link_update
+              Linking.openURL(url);
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    }
+  };
 
   const fetchStats = useCallback(async () => {
     try {
@@ -231,22 +253,36 @@ export default function Account() {
           <Ionicons name="chevron-forward" size={20} color="#555" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="contrast-outline" size={22} color="#fff" />
-            <Text style={styles.settingText}>Theme: Dark / AMOLED</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#555" />
-        </TouchableOpacity>
 */}
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingLeft}>
+        <TouchableOpacity style={styles.versionCard} onPress={() => updateApp()}>
+          <View style={styles.versionLeft}>
             <Ionicons
               name="information-circle-outline"
               size={22}
-              color="#fff"
+              color="#8E8E93"
             />
-            <Text style={styles.settingText}>App Version : {currentVersion}</Text>
+
+            <View style={{ marginLeft: 12 }}>
+              <Text style={styles.versionLabel}>App Version</Text>
+              <Text style={styles.versionNumber}>{currentVersion}</Text>
+            </View>
+          </View>
+
+          <View
+            style={[
+              styles.badge,
+              ifLatestVersion ? styles.latestBadge : styles.updateBadge,
+            ]}
+          >
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: ifLatestVersion ? "#34C759" : "#FF3B30" },
+              ]}
+            />
+            <Text style={styles.badgeText}>
+              {ifLatestVersion ? "Latest" : "Update"}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -412,6 +448,59 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 15,
     fontFamily: "RobotoSlab",
+  },
+  versionCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#1C1C1E",
+    padding: 16,
+    borderRadius: 14,
+    marginVertical: 8,
+  },
+
+  versionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  versionLabel: {
+    color: "#8E8E93",
+    fontSize: 13,
+  },
+
+  versionNumber: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+
+  latestBadge: {
+    backgroundColor: "rgba(52,199,89,0.15)",
+  },
+
+  updateBadge: {
+    backgroundColor: "rgba(255,59,48,0.15)",
+  },
+
+  badgeText: {
+    color: "#fff",
+    fontSize: 12,
+    marginLeft: 6,
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
 });
 

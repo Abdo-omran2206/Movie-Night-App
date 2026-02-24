@@ -1,20 +1,10 @@
-import { fetchMovies } from "@/app/api/main";
 import React, { useEffect, useState } from "react";
-import {
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
-import Swiper from "react-native-swiper";
-import RenderMovieCard from "@/app/components/MovieCard";
-import Trend from "@/app/components/treanding";
+import { ScrollView } from "react-native";
+import Banner from "@/app/components/Banner";
+import Section from "@/app/components/section";
+import { supabase } from "@/app/api/supabase";
 
-import Skeleton from "@/app/components/Skeleton";
-
-type Movie = {
+export type Movie = {
   id: number;
   title?: string;
   name?: string;
@@ -23,194 +13,96 @@ type Movie = {
   vote_average?: number;
 };
 
-export default function Home() {
-  const [trending, setTrending] = useState<Movie[]>([]);
-  const [topRated, setTopRated] = useState<Movie[]>([]);
-  const [popular, setPopular] = useState<Movie[]>([]);
-  const [upcoming, setUpcoming] = useState<Movie[]>([]);
-  const [nowPlaying, setNowPlaying] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { height, width } = useWindowDimensions();
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [tr, trated, pop, upc, now] = await Promise.all([
-          fetchMovies("/trending/movie/week"),
-          fetchMovies("/movie/top_rated"),
-          fetchMovies("/movie/popular"),
-          fetchMovies("/movie/upcoming"),
-          fetchMovies("/movie/now_playing"),
-        ]);
-        setTrending(tr);
-        setTopRated(trated);
-        setPopular(pop);
-        setUpcoming(upc);
-        setNowPlaying(now);
-      } catch (err) {
-        console.error("Error fetching movies:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+type SectionContent = {
+  id?: number;
+  title: string;
+  endpoint: string;
+  type: string;
+  is_active?: boolean;
+};
 
-  const skeletonData = Array.from({ length: 5 }).map((_, index) => ({
-    id: index,
-  }));
+const defaultSections: SectionContent[] = [
+  { endpoint: "/movie/popular", title: "Popular Movies", type: "movie" },
+  { endpoint: "/tv/popular", title: "Popular TV Shows", type: "tv" },
+  { endpoint: "/movie/top_rated", title: "Top Rated Movies", type: "movie" },
+  { endpoint: "/tv/top_rated", title: "Top Rated TV Shows", type: "tv" },
+  {
+    endpoint: "/movie/now_playing",
+    title: "Now Playing Movies",
+    type: "movie",
+  },
+  { endpoint: "/tv/now_playing", title: "Now Playing TV Shows", type: "tv" },
+  { endpoint: "/tv/airing_today", title: "Airing Today TV Shows", type: "tv" },
+  { endpoint: "/movie/upcoming", title: "Coming Soon Movies", type: "movie" },
+  { endpoint: "/tv/on_the_air", title: "Coming Soon TV Shows", type: "tv" },
+  {
+    endpoint: "/discover/movie?vote_average.gte=7.5&vote_count.gte=1000",
+    title: "Critically Acclaimed Movies",
+    type: "movie",
+  },
+  {
+    endpoint: "/discover/movie?with_genres=28",
+    title: "Action Movies",
+    type: "movie",
+  },
+  {
+    endpoint: "/discover/movie?with_genres=35",
+    title: "Comedy Movies",
+    type: "movie",
+  },
+];
+
+export default function Home() {
+  const [sectionsContent, setSectionsContent] = useState<SectionContent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSections = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("sections_content")
+        .select("*")
+        .eq("is_active", true)
+        .order("id", { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        if (error)
+          console.error("Error fetching active section content:", error);
+        setSectionsContent(defaultSections);
+      } else {
+        console.log(
+          "Default sections loaded:",
+          data.map((s) => s.title),
+        );
+        setSectionsContent(data);
+      }
+      setLoading(false);
+    };
+
+    fetchSections();
+  }, []);
 
   return (
     <ScrollView style={{ backgroundColor: "#000", flex: 1 }}>
-      {/* 🎬 Hero Swiper */}
-      {loading ? (
-        <View style={{ height: height * 0.48, width: width }}>
-          <Skeleton width="100%" height="100%" borderRadius={0} />
-          <View style={{ position: "absolute", bottom: 40, left: 20 }}>
-            <Skeleton width={200} height={40} borderRadius={4} />
-            <Skeleton
-              width={100}
-              height={20}
-              borderRadius={4}
-              style={{ marginTop: 10 }}
-            />
-          </View>
-        </View>
-      ) : (
-        <Swiper
-          style={{ height: height * 0.48 }}
-          showsPagination={true}
-          dotColor="gray"
-          activeDotColor="#E50914"
-          loop
-          autoplay
-          autoplayTimeout={5}
-        >
-          {trending.map((item) => (
-            <Trend
-              key={item.id}
-              cover={`https://image.tmdb.org/t/p/w780${item.backdrop_path}`}
-              movieTitle={item.title || item.name || "Untitled"}
-              id={item.id}
-              rating={item.vote_average}
-            />
-          ))}
-        </Swiper>
-      )}
-
+      <Banner />
       {/* Sections */}
-      <View style={styles.sectionHeader}>
-        <View style={styles.beforeLine} />
-        <Text style={styles.tags}>Top Rated Movies</Text>
-      </View>
-      <FlatList
-        horizontal
-        data={loading ? skeletonData : topRated}
-        renderItem={({ item }) => (
-          <RenderMovieCard item={item as any} Loading={loading} />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        showsHorizontalScrollIndicator={false}
-      />
 
-      <View style={styles.sectionHeader}>
-        <View style={styles.beforeLine} />
-        <Text style={styles.tags}>Popular Movies</Text>
-      </View>
-      <FlatList
-        horizontal
-        data={loading ? skeletonData : popular}
-        renderItem={({ item }) => (
-          <RenderMovieCard item={item as any} Loading={loading} />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        showsHorizontalScrollIndicator={false}
-      />
-
-      <View style={styles.sectionHeader}>
-        <View style={styles.beforeLine} />
-        <Text style={styles.tags}>Upcoming Movies</Text>
-      </View>
-      <FlatList
-        horizontal
-        data={loading ? skeletonData : upcoming}
-        renderItem={({ item }) => (
-          <RenderMovieCard item={item as any} Loading={loading} />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        showsHorizontalScrollIndicator={false}
-      />
-
-      <View style={styles.sectionHeader}>
-        <View style={styles.beforeLine} />
-        <Text style={styles.tags}>Now Playing</Text>
-      </View>
-      <FlatList
-        horizontal
-        data={loading ? skeletonData : nowPlaying}
-        renderItem={({ item }) => (
-          <RenderMovieCard item={item as any} Loading={loading} />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        showsHorizontalScrollIndicator={false}
-      />
+      {loading ? (
+        <>
+          <Section key="ske-1" endpoint="" title="" isPlaceholder />
+          <Section key="ske-2" endpoint="" title="" isPlaceholder />
+          <Section key="ske-3" endpoint="" title="" isPlaceholder />
+        </>
+      ) : (
+        sectionsContent.map((section) => (
+          <Section
+            key={section.endpoint}
+            endpoint={section.endpoint}
+            title={section.title}
+            mediaType={section.type as "movie" | "tv" | "person"}
+          />
+        ))
+      )}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  loaderContainer: {
-    flex: 1,
-    backgroundColor: "#000",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loaderText: {
-    marginTop: 12,
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "RobotoSlab",
-  },
-  dot: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 3,
-  },
-  activeDot: {
-    backgroundColor: "#E50914",
-    width: 20,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 3,
-  },
-  pagination: {
-    bottom: 20,
-    justifyContent: "flex-end",
-    paddingRight: 20,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 15,
-    marginTop: 20,
-  },
-  beforeLine: {
-    width: 5,
-    height: 30,
-    backgroundColor: "#E50914",
-    marginRight: 8,
-    borderRadius: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  tags: {
-    color: "#fff",
-    fontFamily: "BebasNeue",
-    fontSize: 28,
-    letterSpacing: 1,
-  },
-});

@@ -25,6 +25,7 @@ type UserState = {
 type AppConfig = {
   base_url: string;
   movie_slug: string;
+  tv_slug: string;
   actor_slug: string;
   min_app_version: string;
   latest_app_version: string;
@@ -32,6 +33,7 @@ type AppConfig = {
   force_message: string;
   app_link_update: string;
   share_text_template_movie: string;
+  share_text_template_tv: string;
   share_text_template_actor: string;
 };
 
