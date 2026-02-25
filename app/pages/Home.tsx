@@ -70,10 +70,6 @@ export default function Home() {
           console.error("Error fetching active section content:", error);
         setSectionsContent(defaultSections);
       } else {
-        console.log(
-          "Default sections loaded:",
-          data.map((s) => s.title),
-        );
         setSectionsContent(data);
       }
       setLoading(false);

@@ -23,6 +23,8 @@ import TrailerModal from "@/app/components/ShowTrailer";
 import React, { useEffect, useState } from "react";
 import { useStore } from "../../store/store";
 import ImageViewer from "../../components/ImageViewer";
+import { encodeId } from "@/app/lib/hash";
+import { slugify } from "@/app/lib/slugify";
 
 const { width, height } = Dimensions.get("window");
 
@@ -37,7 +39,9 @@ export default function TvDetails() {
 
   const onShare = async () => {
     try {
-      const shareUrl = `${webSiteUrl}${config?.tv_slug || "/tv/"}${tv.id}`;
+      const year = tv.first_air_date ? tv.first_air_date.split("-")[0] : "";
+      const titleSlug = (slugify(tv.name) || "") + (year ? `-${year}` : "");
+      const shareUrl = `${webSiteUrl}${config?.tv_slug || "/tv/"}${encodeId(tv.id)}/${titleSlug || ""}`;
 
       // Use template from config or fallback to default message
       const shareMessage = config?.share_text_template_tv
@@ -59,6 +63,14 @@ export default function TvDetails() {
     BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
   });
+
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
 
   useEffect(() => {
     async function loaddata() {
@@ -155,7 +167,7 @@ export default function TvDetails() {
 
       {/* 📅 Metadata */}
       <View style={styles.metaRow}>
-        <Text style={styles.metaBox}>{tv.first_air_date}</Text>
+        <Text style={styles.metaBox}>{formatDate(tv.first_air_date)}</Text>
         <Text style={styles.metaBox}>{tv.number_of_seasons} Seasons</Text>
         <Text style={styles.metaBox}>
           <Ionicons name="star" size={15} color="#FFD700" />{" "}

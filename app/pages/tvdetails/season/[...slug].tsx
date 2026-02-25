@@ -179,7 +179,8 @@ export default function SeasonDetailsScreen() {
         {airYear && <Text style={styles.metaBox}>{airYear}</Text>}
         <Text style={styles.metaBox}>{episodeCount} Episodes</Text>
         <Text style={styles.metaBox}>
-          ⭐ {season.vote_average?.toFixed(1) ?? "—"}/10
+          <Ionicons name="star" size={15} color="#FFD700" />{" "}
+          {season.vote_average?.toFixed(1) ?? "—"}/10
         </Text>
       </View>
 

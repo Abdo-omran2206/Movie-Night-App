@@ -7,6 +7,7 @@ import { useStore } from "./store/store";
 import { BookmarkManager } from "./api/BookmarkManager";
 import { fetchAppConfig } from "./api/ConfigManager";
 import * as NavigationBar from "expo-navigation-bar";
+import 'react-native-get-random-values';
 
 export { ErrorBoundary } from "expo-router";
 

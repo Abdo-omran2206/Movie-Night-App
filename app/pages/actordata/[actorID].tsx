@@ -21,6 +21,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "../../store/store";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewer from "../../components/ImageViewer";
+import { slugify } from "@/app/lib/slugify";
+import { encodeId } from "@/app/lib/hash";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,8 +42,8 @@ export default function ActorDetails() {
 
   const onShare = async () => {
     try {
-      const shareUrl = `${webSiteUrl}${config?.actor_slug || "/actor/"}${actor.id}`;
-
+      const titleSlug = slugify(actor.name) || "";
+      const shareUrl = `${webSiteUrl}${config?.actor_slug || "/actor/"}${encodeId(actor.id)}/${titleSlug || ""}`;
       // Use template from config or fallback to default message
       const shareMessage = config?.share_text_template_actor
         ? config.share_text_template_actor
@@ -206,7 +208,7 @@ export default function ActorDetails() {
           </View>
           <FlatList
             horizontal
-            data={[...actor.movie_credits.cast ,...actor.tv_credits.cast]
+            data={[...actor.movie_credits.cast, ...actor.tv_credits.cast]
               .sort((a: any, b: any) =>
                 (b.release_date || b.first_air_date || "").localeCompare(
                   a.release_date || a.first_air_date || "",

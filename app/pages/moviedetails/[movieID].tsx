@@ -23,6 +23,8 @@ import BookmarkModel from "../../components/BookmarkModel";
 import { useStore } from "../../store/store";
 import StreamModel from "../../components/StreamModel";
 import ImageViewer from "../../components/ImageViewer";
+import { encodeId } from "@/app/lib/hash";
+import { slugify } from "@/app/lib/slugify";
 const { width, height } = Dimensions.get("window");
 
 export default function MovieDetails() {
@@ -36,7 +38,9 @@ export default function MovieDetails() {
   const { webSiteUrl, config } = useStore();
   const onShare = async () => {
     try {
-      const shareUrl = `${webSiteUrl}${config?.movie_slug || "/movie/"}${movie.id}`;
+      const year = movie.release_date ? movie.release_date.split("-")[0] : "";
+      const titleSlug = (slugify(movie.title) || "") + (year ? `-${year}` : "");
+      const shareUrl = `${webSiteUrl}${config?.movie_slug || "/movie/"}${encodeId(movie.id)}/${titleSlug || ""}`;
 
       // Use template from config or fallback to default message
       const shareMessage = config?.share_text_template_movie
@@ -58,6 +62,14 @@ export default function MovieDetails() {
     BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
   });
+
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
 
   useEffect(() => {
     async function loaddata() {
@@ -161,7 +173,7 @@ export default function MovieDetails() {
       <Text style={styles.overview}>{movie.overview}</Text>
       {/* Metadata */}
       <View style={styles.metaRow}>
-        <Text style={styles.metaBox}>{movie.release_date}</Text>
+        <Text style={styles.metaBox}>{formatDate(movie.release_date)}</Text>
         <Text style={styles.metaBox}>{formatRuntime(movie.runtime)}</Text>
         {formatRuntime(movie.runtime) !== "N/A" && (
           <Text style={styles.metaBox}>
