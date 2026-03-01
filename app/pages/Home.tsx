@@ -3,6 +3,7 @@ import { ScrollView } from "react-native";
 import Banner from "@/app/components/Banner";
 import Section from "@/app/components/section";
 import { supabase } from "@/app/api/supabase";
+import { getRegion } from "../lib/getRegion";
 
 export type Movie = {
   id: number;
@@ -55,7 +56,19 @@ const defaultSections: SectionContent[] = [
 export default function Home() {
   const [sectionsContent, setSectionsContent] = useState<SectionContent[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const regions: Record<string, string> = {
+    EG: "Egypt",
+    US: "USA",
+    GB: "UK",
+    SA: "Saudi Arabia",
+    AE: "UAE",
+    FR: "France",
+    DE: "Germany",
+    CA: "Canada",
+    AU: "Australia",
+    IT: "Italy",
+    ES: "Spain",
+  };
   useEffect(() => {
     const fetchSections = async () => {
       setLoading(true);
@@ -70,7 +83,19 @@ export default function Home() {
           console.error("Error fetching active section content:", error);
         setSectionsContent(defaultSections);
       } else {
-        setSectionsContent(data);
+        const { region } = await getRegion();
+        const countryName = regions[region || "US"] || "USA";
+        setSectionsContent(
+          data.map((section) => ({
+            ...section,
+            title: section.title
+              .replace("${countryName}", countryName || "USA")
+              .replace("{countryName}", countryName || "USA"),
+            endpoint: section.endpoint
+              .replace("${region}", region || "US")
+              .replace("{region}", region || "US"),
+          })),
+        );
       }
       setLoading(false);
     };
@@ -85,9 +110,14 @@ export default function Home() {
 
       {loading ? (
         <>
-          <Section key="ske-1" endpoint="" title="" isPlaceholder />
-          <Section key="ske-2" endpoint="" title="" isPlaceholder />
-          <Section key="ske-3" endpoint="" title="" isPlaceholder />
+          {defaultSections.map((section) => (
+            <Section
+              key={`ske-${section.endpoint}`}
+              endpoint=""
+              title={section.title}
+              isPlaceholder
+            />
+          ))}
         </>
       ) : (
         sectionsContent.map((section) => (
