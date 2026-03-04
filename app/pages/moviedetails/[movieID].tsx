@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Share,
+  StatusBar,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -130,6 +131,11 @@ export default function MovieDetails() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#000" }}>
       {/* Backdrop + Poster */}
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
       <View style={styles.posterSection}>
         <ImageBackground
           source={{

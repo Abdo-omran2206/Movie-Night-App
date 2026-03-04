@@ -11,6 +11,7 @@ import {
   ScrollView,
   Dimensions,
   Share,
+  StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
@@ -115,6 +116,11 @@ export default function TvDetails() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#000" }}>
       {/* 🎬 Backdrop + Poster */}
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
       <View style={styles.posterSection}>
         <ImageBackground
           source={{
