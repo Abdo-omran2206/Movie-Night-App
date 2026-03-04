@@ -27,6 +27,7 @@ The application features a dark, cinematic theme with smooth animations, offerin
 
 - **Trending Movies**: Large hero cards with backdrop images and movie details
 - **Movie Categories**: Top Rated, Popular, Upcoming, and Now Playing sections
+- **Localized Content**: Automatically dynamically detects user's region via IP to provide localized recommendations and trending movies
 - **Responsive Design**: Optimized for mobile, tablet, and desktop devices
 - **Skeleton Loading**: Smooth, pulse-animated placeholders for all movie lists and hero cards
 - **Smooth Animations**: Premium hover effects and transition animations throughout
@@ -41,9 +42,11 @@ The application features a dark, cinematic theme with smooth animations, offerin
 
 - **Comprehensive Information**: Cast, crew, ratings, genres, seasons, and detailed overviews
 - **High-Quality Media**: HD backdrop and poster images
--- **Integrated Playback**: Watch trailers directly in-app via YouTube integration
--- **Similar & Recommended Content**: Discover related movies and TV shows effortlessly with integrated recommendations
--- **Smart Sharing**: Share movies, TV shows, and seasons with customizable templates and deep links
+- **User Reviews**: Access detailed user reviews and ratings for movies and TV shows
+- **Streaming Providers**: Browse and discover content available on specific streaming services
+- **Integrated Playback**: Watch trailers directly in-app via YouTube integration
+- **Similar & Recommended Content**: Discover related movies and TV shows effortlessly with integrated recommendations
+- **Smart Sharing**: Share movies, TV shows, and seasons with customizable templates and deep links
 
 ### 📚 **Bookmarks & Library**
 
@@ -128,23 +131,33 @@ Movie-Night-App/
 │   │   ├── Navbar.tsx           # Bottom navigation bar
 │   │   ├── Banner.tsx           # Home trending hero carousel
 │   │   ├── section.tsx          # Horizontal content rails (home)
-│   │   ├── MovieCard.tsx        # Reusable card for movies/TV
 │   │   ├── ExploreCard.tsx      # Card for Explore grid results
-│   │   ├── BookmarkCard.tsx     # Card for bookmark list
-│   │   ├── TvSeasonCard.tsx     # Card for individual TV seasons
-│   │   ├── CastCard.tsx         # Actor/cast avatar card
 │   │   ├── Skeleton.tsx         # Pulse loading skeletons
 │   │   ├── ShowTrailer.tsx      # YouTube trailer modal
 │   │   ├── StreamModel.tsx      # Watch Now / streaming modal
 │   │   ├── ImageViewer.tsx      # Full-screen image viewer
-│   │   └── BookmarkModel.tsx    # Bookmark button & status selector
+│   │   ├── BookmarkModel.tsx    # Bookmark button & status selector
+│   │   └── Cards/
+│   │       ├── BookmarkCard.tsx # Card for bookmark list
+│   │       ├── CastCard.tsx     # Actor/cast avatar card
+│   │       ├── MovieCard.tsx    # Reusable card for movies/TV
+│   │       ├── ProvidersCards.tsx # Card for streaming providers
+│   │       └── TvSeasonCard.tsx # Card for individual TV seasons
 │   ├── lib/
-│   │   └── generateMovieAvatar.ts # Fallback avatar SVG generator
+│   │   ├── generateMovieAvatar.ts # Fallback avatar SVG generator
+│   │   ├── getRegion.ts         # IP-based region detection
+│   │   ├── hash.ts              # Hashing utilities
+│   │   └── slugify.ts           # String slugification utilities
 │   ├── pages/
 │   │   ├── Home.tsx             # Main discovery feed (trending & rails)
 │   │   ├── Explore.tsx          # Search & filters (movies/TV)
 │   │   ├── Bookmark.tsx         # Saved library (guest & account)
 │   │   ├── Profile.tsx          # User account & settings
+│   │   ├── Provider/
+│   │   │   ├── Providers.tsx    # List of streaming providers
+│   │   │   └── [ProviderId].tsx # Movies/TV by provider
+│   │   ├── reviews/
+│   │   │   └── [movieID].tsx    # User reviews for movies/TV
 │   │   ├── moviedetails/
 │   │   │   └── [movieID].tsx    # Movie details screen
 │   │   ├── tvdetails/
