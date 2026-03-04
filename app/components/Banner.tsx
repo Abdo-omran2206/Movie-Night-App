@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { fetchMovies } from "../api/main";
 const { width, height } = Dimensions.get("window");
-const SLIDE_HEIGHT = height * 0.45;
+const SLIDE_HEIGHT = height * 0.5;
 
 type TrendProps = {
   id: number;
@@ -52,7 +52,7 @@ export default function Banner() {
     <View>
       {/* 🎬 Hero Swiper */}
       {loading ? (
-        <View style={{ height: height * 0.48, width: width }}>
+        <View style={{ height: height * 0.52, width: width }}>
           <Skeleton width="100%" height="100%" borderRadius={0} />
           <View style={{ position: "absolute", bottom: 40, left: 20 }}>
             <Skeleton width={200} height={40} borderRadius={4} />
@@ -66,7 +66,7 @@ export default function Banner() {
         </View>
       ) : (
         <Swiper
-          style={{ height: height * 0.48 }}
+          style={{ height: height * 0.52 }}
           showsPagination={true}
           dotColor="gray"
           activeDotColor="#E50914"

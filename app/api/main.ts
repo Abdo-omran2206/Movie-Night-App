@@ -37,6 +37,42 @@ export async function search(query: string, page: number) {
   }
 }
 
+export async function getMovieReviews(movieId: string) {
+  try {
+    const response = await fetch(
+      `${base_url}/movie/${movieId}/reviews?api_key=${api_key}&language=en-US`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch reviews for movie ID: ${movieId}`);
+    }
+
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error("Error fetching movie reviews:", error);
+    return [];
+  }
+}
+
+export async function getTvReviews(tvId: string) {
+  try {
+    const response = await fetch(
+      `${base_url}/tv/${tvId}/reviews?api_key=${api_key}&language=en-US`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch reviews for TV ID: ${tvId}`);
+    }
+
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error("Error fetching TV reviews:", error);
+    return [];
+  }
+}
+
 export async function getMovieById(movieid: string) {
   try {
     const response = await fetch(
@@ -51,6 +87,24 @@ export async function getMovieById(movieid: string) {
     return data;
   } catch (error) {
     console.error("Error fetching movie details:", error);
+    return null;
+  }
+}
+
+export async function getCollectionDetails(collectionId: string) {
+  try {
+    const response = await fetch(
+      `${base_url}/collection/${collectionId}?api_key=${api_key}&language=en-US`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch collection for ID: ${collectionId}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching collection details:", error);
     return null;
   }
 }
@@ -164,9 +218,9 @@ export async function fetchFilter({
     const language = regionLanguageMap[region] || "en";
     let endpoint = "";
     let params: Record<string, string> = {
-      api_key,
-      region,
-      language,
+      api_key: api_key || "",
+      region: region || "US",
+      language: language || "en",
       page: String(page),
     };
 
@@ -201,7 +255,7 @@ export async function fetchFilter({
     params["with_original_language"] = language;
 
     const query = Object.entries(params)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value || "")}`)
       .join("&");
 
     const url = `${base_url}/${endpoint}?${query}`;

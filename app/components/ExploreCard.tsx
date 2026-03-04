@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import React from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
 import Skeleton from "./Skeleton";
+import { Ionicons } from "@expo/vector-icons";
 
 type Movie = {
   id: number;
@@ -94,7 +95,13 @@ export default function RenderMovieCard({
         <View style={styles.metaRow}>
           {item.vote_average !== undefined && (
             <Text style={styles.movieMeta}>
-              ⭐ {item.vote_average.toFixed(1)}
+              <Ionicons
+                name="star"
+                size={15}
+                color={"#FFD700"}
+                style={{ marginRight: 5 }}
+              />{" "}
+              {item.vote_average.toFixed(1)}
             </Text>
           )}
           <Text style={styles.movieMeta}>

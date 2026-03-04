@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import Navbar from "./components/Navbar";
 import { Ionicons } from "@expo/vector-icons";
-import { useStore } from "@/app/store/store";
+import { useStore, AppConfig } from "@/app/store/store";
 import Home from "@/app/pages/Home";
 import Bookmark from "@/app/pages/Bookmark";
 import Explore from "@/app/pages/Explore";
@@ -68,7 +68,11 @@ export default function Index() {
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {isAppBlocked ? (
-          <BlockedScreen reason={blockReason} message={blockMessage} config={config} />
+          <BlockedScreen
+            reason={blockReason}
+            message={blockMessage}
+            config={config}
+          />
         ) : loading ? (
           <>
             <LoadingMainBox isConnected={isConnected} />
@@ -134,7 +138,7 @@ function BlockedScreen({
 }: {
   reason: string | null;
   message: string | null;
-  config: any;
+  config: AppConfig | null;
 }) {
   const isMaintenance = reason === "maintenance";
   const isUpdateRequired = reason === "update_required";
@@ -165,30 +169,32 @@ function BlockedScreen({
           <Text style={styles.offlineSubText}>
             {message || "Please check back later."}
           </Text>
-            {isUpdateRequired && (
+          {isUpdateRequired && (
             <View style={{ marginTop: 20, alignItems: "center" }}>
               <TouchableOpacity
-              style={{
-                backgroundColor: "#E50914",
-                paddingVertical: 12,
-                paddingHorizontal: 24,
-                borderRadius: 5,
-                marginTop: 20,
-              }}
-              onPress={() => {
-                if (config?.app_link_update) {
-                Linking.openURL(config.app_link_update).catch((err) =>
-                  console.error("Failed to open update link:", err),
-                );
-                }
-              }}
+                style={{
+                  backgroundColor: "#E50914",
+                  paddingVertical: 12,
+                  paddingHorizontal: 24,
+                  borderRadius: 5,
+                  marginTop: 20,
+                }}
+                onPress={() => {
+                  if (config?.app_link_update) {
+                    Linking.openURL(config.app_link_update).catch((err) =>
+                      console.error("Failed to open update link:", err),
+                    );
+                  }
+                }}
               >
-              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
-                Update App
-              </Text>
+                <Text
+                  style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}
+                >
+                  Update App
+                </Text>
               </TouchableOpacity>
             </View>
-            )}
+          )}
         </View>
       </View>
     </View>

@@ -22,7 +22,7 @@ type UserState = {
 };
 
 
-type AppConfig = {
+export type AppConfig = {
   base_url: string;
   movie_slug: string;
   tv_slug: string;
@@ -30,6 +30,7 @@ type AppConfig = {
   min_app_version: string;
   latest_app_version: string;
   force_stop: boolean;
+  platform:string;
   force_message: string;
   app_link_update: string;
   share_text_template_movie: string;
@@ -50,9 +51,14 @@ type AppBlockState = {
   setAppBlocked: (reason: string | null, message: string | null) => void;
 };
 
+type RegionState = {
+  region: string;
+  setRegion: (region: string) => void;
+};
+
 // Zustand store with persistence
 export const useStore = create<
-  StoreType & UserMood & UserState & ConfigState & AppBlockState
+  StoreType & UserMood & UserState & ConfigState & AppBlockState & RegionState
 >()(
   persist(
     (set) => ({
@@ -65,6 +71,10 @@ export const useStore = create<
 
       mood: "Guest",
       setMood: (mood: MoodType) => set({ mood }),
+
+      // Region
+      region: "US", // Default to US
+      setRegion: (region: string) => set({ region }),
 
       // App Config
       config: null,
@@ -94,6 +104,7 @@ export const useStore = create<
         // Only persist these specific fields
         user: state.user,
         mood: state.mood,
+        region: state.region,
       }),
     },
   ),

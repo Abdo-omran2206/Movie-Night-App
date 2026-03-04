@@ -15,9 +15,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { getTvById } from "../../api/main";
-import RenderCastCard from "@/app/components/CastCard";
-import RenderMovieCard from "../../components/MovieCard";
-import TvSeasonCard from "../../components/TvSeasonCard";
+import RenderCastCard from "@/app/components/Cards/CastCard";
+import RenderMovieCard from "../../components/Cards/MovieCard";
+import TvSeasonCard from "../../components/Cards/TvSeasonCard";
 import BookmarkModel from "../../components/BookmarkModel";
 import TrailerModal from "@/app/components/ShowTrailer";
 import React, { useEffect, useState } from "react";
@@ -131,9 +131,26 @@ export default function TvDetails() {
             >
               <Ionicons name="chevron-back" size={28} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={onShare} style={styles.actionButton}>
-              <Ionicons name="share-social-outline" size={24} color="#fff" />
-            </TouchableOpacity>
+            <View style={{ gap: 10, flexDirection: "row" }}>
+              <TouchableOpacity onPress={onShare} style={styles.actionButton}>
+                <Ionicons name="share-social-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/pages/reviews/[movieID]",
+                    params: { movieID: tv.id.toString(), type: "tv" },
+                  })
+                }
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name="chatbox-ellipses-outline"
+                  size={24}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
@@ -314,7 +331,7 @@ const styles = StyleSheet.create({
   },
   cover: {
     width: width,
-    height: height * 0.35,
+    height: height * 0.4,
     justifyContent: "flex-end",
   },
   overlay: {
@@ -323,7 +340,7 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     position: "absolute",
-    top: 35,
+    top: 40,
     left: 0,
     right: 0,
     flexDirection: "row",

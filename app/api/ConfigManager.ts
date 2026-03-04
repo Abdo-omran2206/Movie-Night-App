@@ -35,7 +35,9 @@ function checkVersionAndStatus(config: any): { isBlocked: boolean; reason: strin
   const currentVersion = Constants.expoConfig?.version || "1.0.0";
 
   // 1️⃣ Check Force Stop
-  if (config.force_stop) {
+  if (config.force_stop && config.platform === "all" || config.platform === "android") {
+    console.log(config.platform);
+    
     return {
       isBlocked: true,
       reason: "maintenance",

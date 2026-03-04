@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 
-import Skeleton from "./Skeleton";
+import Skeleton from "../Skeleton";
 
 interface Bookmark {
   id: number;

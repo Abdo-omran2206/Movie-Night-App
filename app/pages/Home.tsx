@@ -4,6 +4,7 @@ import Banner from "@/app/components/Banner";
 import Section from "@/app/components/section";
 import { supabase } from "@/app/api/supabase";
 import { getRegion } from "../lib/getRegion";
+import ProvidersCards from "../components/Cards/ProvidersCards";
 
 export type Movie = {
   id: number;
@@ -106,6 +107,7 @@ export default function Home() {
   return (
     <ScrollView style={{ backgroundColor: "#000", flex: 1 }}>
       <Banner />
+      <ProvidersCards/>
       {/* Sections */}
 
       {loading ? (

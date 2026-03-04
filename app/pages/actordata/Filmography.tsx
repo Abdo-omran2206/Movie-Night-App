@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getActorById } from "../../api/main";
-import RenderMovieCard from "../../components/MovieCard";
+import RenderMovieCard from "../../components/Cards/MovieCard";
 import { useFonts } from "expo-font";
 
 export default function Filmography() {

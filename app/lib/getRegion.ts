@@ -1,33 +1,70 @@
+import { useStore } from "../store/store";
+
 export async function getRegion() {
-  try {
-    // Try ipwho.is first
-    const response = await fetch("https://ipwho.is/");
-    const data = await response.json();
-    if (data && data.country_code) {
-      return {
-        region: data.country_code,
-        language: "en",
-      };
-    }
-  } catch (error) {
-    console.warn("ipwho.is failed, trying fallback...", error);
+  // 1️⃣ Check if region is already set in store (persisted in AsyncStorage)
+  const storedRegion = useStore.getState().region;
+  if (storedRegion && storedRegion !== "US") {
+    return {
+      region: storedRegion,
+      language: "en",
+    };
   }
 
-  try {
-    // Fallback to ip-api.com
-    const response = await fetch("http://ip-api.com/json/");
-    const data = await response.json();
-    if (data && data.countryCode) {
-      return {
-        region: data.countryCode,
-        language: "en",
-      };
+  const providers = [
+    {
+      url: "https://ipwho.is/",
+      parse: (d: any) => d.country_code,
+    },
+    {
+      url: "https://ipapi.co/json/",
+      parse: (d: any) => d.country_code,
+    },
+    {
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (d: any) => d.countryCode,
+    },
+    {
+      url: "https://cloudflare.com/cdn-cgi/trace",
+      parse: (d: string) => {
+        const lines = d.split("\n");
+        const loc = lines.find((line) => line.startsWith("loc="));
+        return loc ? loc.split("=")[1] : null;
+      },
+      isText: true,
     }
-  } catch (error) {
-    console.error("All region fetchers failed:", error);
+  ];
+
+  for (const provider of providers) {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(provider.url, { signal: controller.signal });
+      clearTimeout(id);
+
+      if (!response.ok) continue;
+
+      const data = (provider as any).isText ? await response.text() : await response.json();
+      const code = provider.parse(data as any);
+
+      if (code && typeof code === "string") {
+        const finalRegion = code.toUpperCase();
+        
+        // 2️⃣ Set fetched region in store for future use
+        useStore.getState().setRegion(finalRegion);
+
+        return {
+          region: finalRegion,
+          language: "en",
+        };
+      }
+    } catch (err) {
+      console.warn(`Region fetcher ${provider.url} failed:`, err);
+    }
   }
 
-  // Final fallback
+  // Final fallback if everything fails
+  console.error("All region fetchers failed, using default (US)");
   return {
     region: "US",
     language: "en",

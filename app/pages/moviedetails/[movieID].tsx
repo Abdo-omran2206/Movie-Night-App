@@ -14,10 +14,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { getMovieById } from "../../api/main";
+import { getMovieById, getCollectionDetails } from "../../api/main";
 import { useFonts } from "expo-font";
-import RenderCastCard from "../../components/CastCard";
-import RenderMovieCard from "../../components/MovieCard";
+import RenderCastCard from "../../components/Cards/CastCard";
+import RenderMovieCard from "../../components/Cards/MovieCard";
 import TrailerModal from "@/app/components/ShowTrailer";
 import BookmarkModel from "../../components/BookmarkModel";
 import { useStore } from "../../store/store";
@@ -31,6 +31,7 @@ export default function MovieDetails() {
   const { movieID } = useLocalSearchParams();
   const router = useRouter();
   const [movie, setMovie] = useState<any>(null);
+  const [collection, setCollection] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
   const [showStreamModel, setShowStreamModel] = useState(false);
@@ -83,6 +84,12 @@ export default function MovieDetails() {
 
         if (movieData) {
           setMovie(movieData);
+          if (movieData.belongs_to_collection) {
+            const collectionData = await getCollectionDetails(
+              movieData.belongs_to_collection.id.toString(),
+            );
+            setCollection(collectionData);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -139,9 +146,26 @@ export default function MovieDetails() {
             >
               <Ionicons name="chevron-back" size={28} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={onShare} style={styles.actionButton}>
-              <Ionicons name="share-social-outline" size={24} color="#fff" />
-            </TouchableOpacity>
+            <View style={{ gap: 10, flexDirection: "row" }}>
+              <TouchableOpacity onPress={onShare} style={styles.actionButton}>
+                <Ionicons name="share-social-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/pages/reviews/[movieID]",
+                    params: { movieID: movie.id.toString() },
+                  })
+                }
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name="chatbox-ellipses-outline"
+                  size={24}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
@@ -290,6 +314,25 @@ export default function MovieDetails() {
           showsHorizontalScrollIndicator={false}
         />
       </View>
+      {collection?.parts?.length > 0 && (
+        <View style={styles.castSection}>
+          <Text style={styles.castTitle}>{collection.name}</Text>
+          <View style={styles.underline}></View>
+          <FlatList
+            horizontal
+            data={collection.parts.sort(
+              (a: any, b: any) =>
+                new Date(a.release_date).getTime() -
+                new Date(b.release_date).getTime(),
+            )}
+            renderItem={({ item }) => (
+              <RenderMovieCard item={item} starColor="#E50914" />
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      )}
       {movie?.recommendations?.results?.length > 0 && (
         <View style={styles.castSection}>
           <Text style={styles.castTitle}>recommendations Movies</Text>
@@ -305,6 +348,7 @@ export default function MovieDetails() {
           />
         </View>
       )}
+
       {movie?.similar?.results?.length > 0 && (
         <View style={styles.castSection}>
           <Text style={styles.castTitle}>Similar Movies</Text>
@@ -353,7 +397,7 @@ const styles = StyleSheet.create({
   },
   cover: {
     width: width,
-    height: height * 0.35,
+    height: height * 0.4,
     justifyContent: "flex-end",
   },
   overlay: {
@@ -362,7 +406,7 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     position: "absolute",
-    top: 35,
+    top: 40,
     left: 0,
     right: 0,
     flexDirection: "row",

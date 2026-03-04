@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
-import generateMovieAvatar from "../lib/generateMovieAvatar";
+import generateMovieAvatar from "../../lib/generateMovieAvatar";
 import { SvgXml } from "react-native-svg";
 
 type CastProps = {

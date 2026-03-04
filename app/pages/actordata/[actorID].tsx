@@ -12,11 +12,12 @@ import {
   TouchableOpacity,
   Share,
   ImageBackground,
+  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getActorById, getActorImages } from "../../api/main";
 import { useFonts } from "expo-font";
-import RenderMovieCard from "../../components/MovieCard";
+import RenderMovieCard from "../../components/Cards/MovieCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "../../store/store";
 import { LinearGradient } from "expo-linear-gradient";
@@ -155,15 +156,7 @@ export default function ActorDetails() {
       </View>
 
       {/* 📜 Biography Section */}
-      <View style={styles.modernSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.modernSectionHeading}>Biography</Text>
-          <View style={styles.accentLine} />
-        </View>
-        <Text style={styles.modernBiography}>
-          {actor.biography || "No biography available for this actor."}
-        </Text>
-      </View>
+      <BiographySection biography={actor.biography} />
 
       {/* 🎬 Filmography Section */}
       {actor.movie_credits?.cast?.length > 0 && (
@@ -300,6 +293,50 @@ export default function ActorDetails() {
   );
 }
 
+type BioSectionProps = {
+  biography?: string;
+};
+
+function BiographySection({ biography }: BioSectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!biography) {
+    return (
+      <View style={styles.modernSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.modernSectionHeading}>Biography</Text>
+          <View style={styles.accentLine} />
+        </View>
+        <Text style={styles.modernBiography}>No biography available for this actor.</Text>
+      </View>
+    );
+  }
+
+  const preview = biography.slice(0, 500);
+
+  return (
+    <View style={styles.modernSection}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.modernSectionHeading}>Biography</Text>
+        <View style={styles.accentLine} />
+      </View>
+
+      <Text style={styles.modernBiography}>
+        {expanded ? biography : preview}
+        {biography.length > 500 && !expanded && "... "}
+      </Text>
+
+      {biography.length > 500 && (
+        <Pressable style={styles.readMoreContainer} onPress={() => setExpanded(!expanded)}>
+          <Text style={styles.readMore}>
+            {expanded ? "Show less" : "Read more"}
+          </Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   center: {
     flex: 1,
@@ -386,6 +423,15 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
     textAlign: "left",
+  },
+  readMoreContainer: {
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  readMore: {
+    marginTop: 4,
+    color: "#FFD700",
+    fontWeight: "600",
   },
   galleryContainer: {
     flexDirection: "row",

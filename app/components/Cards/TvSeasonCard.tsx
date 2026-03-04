@@ -3,7 +3,7 @@ import { View, Image, StyleSheet, Text, Pressable } from "react-native";
 import { useFonts } from "expo-font";
 import { SvgXml } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
-import generateMovieAvatar from "../lib/generateMovieAvatar";
+import generateMovieAvatar from "../../lib/generateMovieAvatar";
 import { useRouter } from "expo-router";
 
 type Season = {

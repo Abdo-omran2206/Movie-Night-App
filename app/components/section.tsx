@@ -1,7 +1,7 @@
 import { fetchMovies } from "@/app/api/main";
 import React, { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import RenderMovieCard from "@/app/components/MovieCard";
+import RenderMovieCard from "@/app/components/Cards/MovieCard";
 import Skeleton from "./Skeleton";
 
 interface SectionProps {

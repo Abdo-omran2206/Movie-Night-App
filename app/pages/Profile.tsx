@@ -12,22 +12,28 @@ import {
   Platform,
   ToastAndroid,
   Linking,
+  ImageBackground,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BookmarkManager } from "../api/BookmarkManager";
 import { useFocusEffect } from "@react-navigation/native";
 import { useStore } from "../store/store";
+import { generateUserAvatar } from "../lib/generateMovieAvatar";
+import { SvgXml, Svg, Circle } from "react-native-svg";
 import { useRouter } from "expo-router";
 import { supabase } from "../api/supabase";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default function Account() {
-  const { mood, setMood, user, setUser, setPage, config } = useStore();
+  const { mood, setMood, user, setUser, setPage, config, region } = useStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const currentVersion = Constants.expoConfig?.version || "1.0.0";
+  const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [stats, setStats] = useState({
     watching: 0,
     watchLater: 0,
@@ -47,7 +53,7 @@ export default function Account() {
           {
             text: "Update",
             onPress: async () => {
-              const url = config?.app_link_update
+              const url = config?.app_link_update;
               Linking.openURL(url);
             },
           },
@@ -57,10 +63,11 @@ export default function Account() {
     }
   };
 
-  const fetchStats = useCallback(async () => {
+  const fetchStatsAndBookmarks = useCallback(async () => {
     try {
       const allBookmarks: any = await BookmarkManager.getBookmarks();
       if (allBookmarks) {
+        setBookmarks(allBookmarks);
         const counts = allBookmarks.reduce(
           (acc: any, curr: any) => {
             if (curr.status === "Watching") acc.watching++;
@@ -79,7 +86,6 @@ export default function Account() {
   }, []);
 
   useEffect(() => {
-    // Auth is now handled globally in app/index.tsx
     if (user) {
       setLoading(false);
     } else {
@@ -92,10 +98,7 @@ export default function Account() {
       "Log Out",
       "Are you sure you want to log out?",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Yes",
           onPress: async () => {
@@ -117,16 +120,12 @@ export default function Account() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchStats();
-    }, [fetchStats]),
+      fetchStatsAndBookmarks();
+    }, [fetchStatsAndBookmarks]),
   );
 
   if (mood === "Guest") {
-    return (
-      <>
-        <AccountRequired router={router} />
-      </>
-    );
+    return <AccountRequired router={router} />;
   }
 
   if (loading) {
@@ -137,389 +136,690 @@ export default function Account() {
     );
   }
 
+  const watchingMovies = bookmarks.filter((b) => b.status === "Watching");
+  const lastWatched = watchingMovies[0];
+
+  // 🕐 Recently Added – last 5 items across all statuses
+  const recentlyAdded = [...bookmarks]
+    .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
+    .slice(0, 5);
+
+  const regions: Record<string, string> = {
+    US: "USA",
+    EG: "Egypt",
+    GB: "UK",
+    SA: "Saudi Arabia",
+    AE: "UAE",
+    FR: "France",
+    DE: "Germany",
+    CA: "Canada",
+    AU: "Australia",
+    IT: "Italy",
+    ES: "Spain",
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* 👤 Profile Section */}
-      <View style={styles.profileHeader}>
-        <View style={styles.avatarContainer}>
-          <Image
-            source={{
-              uri: `https://api.dicebear.com/9.x/initials/png?seed=${
-                user?.user_metadata?.username || user?.email || "Guest"
-              }&backgroundColor=E50914`,
-            }}
-            style={styles.avatar}
+      {/* 👤 Modern Header with Backdrop */}
+      <View style={styles.headerWrapper}>
+        <ImageBackground
+          source={{
+            uri: lastWatched?.backdrop_path
+              ? `https://image.tmdb.org/t/p/w780${lastWatched.backdrop_path}`
+              : "https://images.unsplash.com/photo-1574267432553-4b4628081c31?auto=format&fit=crop&q=80&w=1000",
+          }}
+          style={styles.headerBackdrop}
+          blurRadius={40}
+        >
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.8)", "#000"]}
+            style={styles.headerGradient}
+          >
+            <View style={styles.profileInfo}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.avatar}>
+                  <SvgXml
+                    xml={generateUserAvatar(
+                      user?.user_metadata?.username || user?.email || "Guest",
+                      110,
+                    )}
+                    width="100%"
+                    height="100%"
+                  />
+                </View>
+                <TouchableOpacity style={styles.editAvatarBadge}>
+                  <Ionicons name="camera" size={16} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.userName}>
+                {user?.user_metadata?.username || user?.email?.split("@")[0]}
+              </Text>
+              <Text style={styles.userHandle}>
+                @{user?.user_metadata?.username || "user"}
+              </Text>
+            </View>
+
+            {/* 📊 High-Level Stats Activity */}
+            <View style={styles.statActivityRow}>
+              <View style={styles.activityItem}>
+                <Text style={styles.activityValue}>{stats.total}</Text>
+                <Text style={styles.activityLabel}>Collection</Text>
+              </View>
+              <View style={styles.activityDivider} />
+              <View style={styles.activityItem}>
+                <Text style={styles.activityValue}>
+                  {Math.round(stats.completed * 1.8)}
+                </Text>
+                <Text style={styles.activityLabel}>Hours</Text>
+              </View>
+              <View style={styles.activityDivider} />
+              <View style={styles.activityItem}>
+                <Text style={styles.activityValue}>{stats.completed}</Text>
+                <Text style={styles.activityLabel}>Finished</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </ImageBackground>
+      </View>
+
+      {/* 🎬 Continue Watching Shortcut */}
+      {watchingMovies.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Continue Watching</Text>
+          <FlatList
+            horizontal
+            data={watchingMovies}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(
+                    item.type === "tv"
+                      ? `/pages/tvdetails/${item.id}`
+                      : `/pages/moviedetails/${item.id}`,
+                  )
+                }
+                style={styles.continueCard}
+              >
+                <Image
+                  source={{
+                    uri: `https://image.tmdb.org/t/p/w500${item.backdrop_path}`,
+                  }}
+                  style={styles.continueBackdrop}
+                />
+                <LinearGradient
+                  colors={["transparent", "rgba(0,0,0,0.9)"]}
+                  style={styles.continueGradient}
+                >
+                  <Ionicons name="play-circle" size={30} color="#E50914" />
+                  <Text style={styles.continueTitle} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
           />
-          <TouchableOpacity style={styles.editAvatar}>
-            <Ionicons name="camera" size={20} color="#fff" />
-          </TouchableOpacity>
         </View>
-        <Text style={styles.userName}>
-          {user?.user_metadata?.username ||
-            user?.email?.split("@")[0] ||
-            "Username"}
-        </Text>
-        <Text style={styles.userHandle}>
-          @{user?.user_metadata?.username || "user_handle"}
-        </Text>
-      </View>
+      )}
 
-      {/* 📊 Stats Grid */}
-      <View style={styles.gridContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Watched</Text>
-          <Text style={styles.statValue}>{stats.total}</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Hours Watched</Text>
-          <Text style={styles.statValue}>
-            {Math.round(stats.completed * 1.8)}h
-          </Text>
-        </View>
-      </View>
-
-      {/* 🎬 My Movies Section */}
-      <Text style={styles.sectionTitle}>My Movies</Text>
-      <View style={styles.gridContainer}>
-        <TouchableOpacity style={styles.movieCategory}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "rgba(76, 175, 80, 0.1)" },
-            ]}
-          >
-            <Ionicons name="play" size={24} color="#4CAF50" />
-          </View>
-          <View>
-            <Text style={styles.categoryLabel}>Watching</Text>
-            <Text style={styles.categoryCount}>{stats.watching} movies</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.movieCategory}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "rgba(33, 150, 243, 0.1)" },
-            ]}
-          >
-            <Ionicons name="time" size={24} color="#2196F3" />
-          </View>
-          <View>
-            <Text style={styles.categoryLabel}>Watch Later</Text>
-            <Text style={styles.categoryCount}>{stats.watchLater} movies</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.movieCategory}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "rgba(156, 39, 176, 0.1)" },
-            ]}
-          >
-            <Ionicons name="checkmark-done" size={24} color="#9C27B0" />
-          </View>
-          <View>
-            <Text style={styles.categoryLabel}>Completed</Text>
-            <Text style={styles.categoryCount}>{stats.completed} movies</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.movieCategory}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "rgba(244, 67, 54, 0.1)" },
-            ]}
-          >
-            <Ionicons name="close" size={24} color="#F44336" />
-          </View>
-          <View>
-            <Text style={styles.categoryLabel}>Dropped</Text>
-            <Text style={styles.categoryCount}>{stats.dropped} movie</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* ⚙️ Settings Section */}
-      <Text style={styles.sectionTitle}>Settings</Text>
-      <View style={styles.settingsBox}>
-        {/* <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="menu-outline" size={22} color="#fff" />
-            <Text style={styles.settingText}>Edit Profile</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#555" />
-        </TouchableOpacity>
-
-*/}
-        <TouchableOpacity style={styles.versionCard} onPress={() => updateApp()}>
-          <View style={styles.versionLeft}>
-            <Ionicons
-              name="information-circle-outline"
-              size={22}
-              color="#8E8E93"
-            />
-
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.versionLabel}>App Version</Text>
-              <Text style={styles.versionNumber}>{currentVersion}</Text>
+      {/* 🍩 Watchlist Progress Ring */}
+      {stats.total > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Watchlist Breakdown</Text>
+          <View style={styles.ringContainer}>
+            <WatchlistRing stats={stats} />
+            <View style={styles.ringLegend}>
+              <LegendItem
+                color="#4CAF50"
+                label="Watching"
+                count={stats.watching}
+              />
+              <LegendItem
+                color="#9C27B0"
+                label="Completed"
+                count={stats.completed}
+              />
+              <LegendItem
+                color="#2196F3"
+                label="Watch Later"
+                count={stats.watchLater}
+              />
+              <LegendItem
+                color="#F44336"
+                label="Dropped"
+                count={stats.dropped}
+              />
             </View>
           </View>
+        </View>
+      )}
+      {/* 🕐 Recently Added */}
+      {recentlyAdded.length > 0 && (
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recently Added</Text>
+          <FlatList
+            horizontal
+            data={recentlyAdded}
+            keyExtractor={(item) => item.id?.toString()}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.recentCard}
+                onPress={() =>
+                  router.push(
+                    item.type === "tv"
+                      ? `/pages/tvdetails/${item.movieID}`
+                      : `/pages/moviedetails/${item.movieID}`,
+                  )
+                }
+              >
+                <Image
+                  source={{
+                    uri: `https://image.tmdb.org/t/p/w300${item.poster_path}`,
+                  }}
+                  style={styles.recentPoster}
+                />
+                <LinearGradient
+                  colors={["transparent", "rgba(0,0,0,0.9)"]}
+                  style={styles.recentGradient}
+                >
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor:
+                          item.status === "Watching"
+                            ? "#4CAF5030"
+                            : item.status === "Completed"
+                              ? "#9C27B030"
+                              : item.status === "Dropped"
+                                ? "#F4433630"
+                                : "#2196F330",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusBadgeText,
+                        {
+                          color:
+                            item.status === "Watching"
+                              ? "#4CAF50"
+                              : item.status === "Completed"
+                                ? "#CE93D8"
+                                : item.status === "Dropped"
+                                  ? "#F44336"
+                                  : "#2196F3",
+                        },
+                      ]}
+                    >
+                      {item.status}
+                    </Text>
+                  </View>
+                  <Text style={styles.recentTitle} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
 
+      {/* 📁 Library Overview */}
+      <Text style={styles.sectionTitle}>Library</Text>
+      <View style={styles.libraryGrid}>
+        <LibraryItem
+          label="Watching"
+          count={stats.watching}
+          icon="play"
+          color="#4CAF50"
+          onPress={() => {}}
+        />
+        <LibraryItem
+          label="Watch Later"
+          count={stats.watchLater}
+          icon="time"
+          color="#2196F3"
+          onPress={() => {}}
+        />
+        <LibraryItem
+          label="Completed"
+          count={stats.completed}
+          icon="checkmark-done"
+          color="#9C27B0"
+          onPress={() => {}}
+        />
+        <LibraryItem
+          label="Dropped"
+          count={stats.dropped}
+          icon="close"
+          color="#F44336"
+          onPress={() => {}}
+        />
+      </View>
+
+      {/* 🛠️ Support & App Info */}
+      <View style={styles.footerSection}>
+        <TouchableOpacity style={styles.versionRow}>
+          <View style={styles.versionInfo}>
+            <Text style={styles.vLabel}>CONTENT REGION</Text>
+            <Text style={styles.vValue}>{regions[region] || region}</Text>
+          </View>
+          <Ionicons name="location-outline" size={20} color="#E50914" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.versionRow} onPress={() => updateApp()}>
+          <View style={styles.versionInfo}>
+            <Text style={styles.vLabel}>APP VERSION</Text>
+            <Text style={styles.vValue}>{currentVersion}</Text>
+          </View>
           <View
             style={[
-              styles.badge,
-              ifLatestVersion ? styles.latestBadge : styles.updateBadge,
+              styles.vBadge,
+              { backgroundColor: ifLatestVersion ? "#34C75920" : "#FF3B3020" },
             ]}
           >
-            <View
+            <Text
               style={[
-                styles.dot,
-                { backgroundColor: ifLatestVersion ? "#34C759" : "#FF3B30" },
+                styles.vBadgeText,
+                { color: ifLatestVersion ? "#34C759" : "#FF3B30" },
               ]}
-            />
-            <Text style={styles.badgeText}>
-              {ifLatestVersion ? "Latest" : "Update"}
+            >
+              {ifLatestVersion ? "LATEST" : "UPDATE AVAILABLE"}
             </Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.settingItem, { borderBottomWidth: 0 }]}
-          onPress={handleLogout}
-        >
-          <View style={styles.settingLeft}>
-            <Ionicons name="log-out-outline" size={22} color="#E50914" />
-            <Text style={[styles.settingText, { color: "#E50914" }]}>
-              Log Out
-            </Text>
-          </View>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Log Out</Text>
+          <Ionicons name="log-out-outline" size={20} color="#E50914" />
         </TouchableOpacity>
       </View>
+
       <View style={{ height: 100 }} />
     </ScrollView>
   );
 }
 
+function LibraryItem({ label, count, icon, color, onPress }: any) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={styles.libraryCard}
+    >
+      <View style={[styles.libIconBox, { backgroundColor: `${color}15` }]}>
+        <Ionicons name={icon} size={22} color={color} />
+      </View>
+      <View>
+        <Text style={styles.libLabel}>{label}</Text>
+        <Text style={styles.libCount}>{count} items</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// 🍩 Circular Progress Ring
+function WatchlistRing({ stats }: { stats: any }) {
+  const size = 140;
+  const strokeWidth = 14;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const total = stats.total || 1;
+
+  const segments = [
+    { value: stats.watching, color: "#4CAF50" },
+    { value: stats.completed, color: "#9C27B0" },
+    { value: stats.watchLater, color: "#2196F3" },
+    { value: stats.dropped, color: "#F44336" },
+  ];
+
+  let offset = 0;
+  const arcs = segments.map((seg) => {
+    const ratio = seg.value / total;
+    const dash = ratio * circumference;
+    const gap = circumference - dash;
+    const arc = { dash, gap, offset, color: seg.color };
+    offset += dash;
+    return arc;
+  });
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Svg width={size} height={size}>
+        {/* Background track */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#1a1a1a"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Colored arcs */}
+        {arcs.map((arc, i) =>
+          arc.dash > 0 ? (
+            <Circle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              stroke={arc.color}
+              strokeWidth={strokeWidth}
+              fill="none"
+              strokeDasharray={`${arc.dash} ${arc.gap}`}
+              strokeDashoffset={-arc.offset}
+              strokeLinecap="round"
+              rotation="-90"
+              origin={`${size / 2}, ${size / 2}`}
+            />
+          ) : null,
+        )}
+      </Svg>
+      {/* Center label */}
+      <View style={{ position: "absolute", alignItems: "center" }}>
+        <Text style={{ color: "#fff", fontSize: 26, fontFamily: "BebasNeue" }}>
+          {stats.total}
+        </Text>
+        <Text style={{ color: "#888", fontSize: 10 }}>TITLES</Text>
+      </View>
+    </View>
+  );
+}
+
+function LegendItem({
+  color,
+  label,
+  count,
+}: {
+  color: string;
+  label: string;
+  count: number;
+}) {
+  return (
+    <View style={styles.legendRow}>
+      <View style={[styles.legendDot, { backgroundColor: color }]} />
+      <Text style={styles.legendLabel}>{label}</Text>
+      <Text style={styles.legendCount}>{count}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#000" },
   loaderContainer: {
     flex: 1,
     backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
   },
-  container: {
+  headerWrapper: { height: height * 0.45, width: "100%" },
+  headerBackdrop: { flex: 1, justifyContent: "flex-end" },
+  headerGradient: {
     flex: 1,
-    backgroundColor: "#000",
-  },
-  profileHeader: {
+    paddingTop: height * 0.1,
     alignItems: "center",
-    paddingVertical: 30,
+    justifyContent: "flex-end",
+    paddingBottom: 30,
   },
-  avatarContainer: {
-    position: "relative",
-    marginBottom: 15,
-  },
+  profileInfo: { alignItems: "center", marginBottom: 30 },
+  avatarWrapper: { position: "relative", marginBottom: 15 },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: "#E50914",
-    backgroundColor: "#1C1C1E",
-  },
-  editAvatar: {
-    position: "absolute",
-    bottom: 5,
-    right: 5,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 2,
     backgroundColor: "#E50914",
-    padding: 8,
-    borderRadius: 20,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  editAvatarBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    backgroundColor: "#E50914",
+    padding: 6,
+    borderRadius: 15,
     borderWidth: 2,
     borderColor: "#000",
   },
   userName: {
     fontFamily: "BebasNeue",
-    fontSize: 32,
+    fontSize: 28,
     color: "#fff",
     letterSpacing: 1,
   },
-  userHandle: {
-    fontFamily: "RobotoSlab",
-    fontSize: 14,
-    color: "#777",
-    marginTop: -5,
+  userHandle: { color: "#888", fontSize: 13, marginTop: -2 },
+  statActivityRow: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    width: width * 0.85,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
-  gridContainer: {
+  activityItem: { flex: 1, alignItems: "center" },
+  activityValue: { color: "#fff", fontSize: 20, fontFamily: "BebasNeue" },
+  activityLabel: { color: "#888", fontSize: 10, textTransform: "uppercase" },
+  activityDivider: {
+    width: 1,
+    height: "100%",
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  section: { marginVertical: 20 },
+  sectionTitle: {
+    fontFamily: "BebasNeue",
+    fontSize: 22,
+    color: "#fff",
+    marginLeft: 20,
+    marginBottom: 15,
+    letterSpacing: 0.8,
+  },
+  continueCard: {
+    width: width * 0.6,
+    height: 120,
+    borderRadius: 15,
+    overflow: "hidden",
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  continueBackdrop: { ...StyleSheet.absoluteFillObject },
+  continueGradient: {
+    ...StyleSheet.absoluteFillObject,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 10,
+  },
+  continueTitle: { color: "#fff", fontSize: 14, fontWeight: "bold", flex: 1 },
+  // Progress Ring
+  ringContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    gap: 20,
+  },
+  ringLegend: { flex: 1, gap: 10 },
+  legendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendLabel: { color: "#ccc", fontSize: 12, flex: 1 },
+  legendCount: { color: "#fff", fontWeight: "bold", fontSize: 13 },
+  // Genre DNA
+  genreDnaCard: {
+    marginHorizontal: 15,
+    marginBottom: 20,
+    backgroundColor: "#161618",
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#2a1010",
+    flexDirection: "column",
+    gap: 10,
+  },
+  genreDnaTitle: {
+    color: "#fff",
+    fontFamily: "BebasNeue",
+    fontSize: 18,
+    letterSpacing: 0.5,
+  },
+  genreDnaText: { color: "#aaa", fontSize: 13, lineHeight: 18 },
+  genreTagsRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+    marginTop: 4,
+  },
+  genreTag: {
+    backgroundColor: "#E5091420",
+    borderWidth: 1,
+    borderColor: "#E5091460",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  genreTagText: { color: "#E50914", fontSize: 11, fontWeight: "bold" },
+  // Recently Added
+  recentCard: {
+    width: 110,
+    height: 165,
+    borderRadius: 14,
+    overflow: "hidden",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  recentPoster: { ...StyleSheet.absoluteFillObject },
+  recentGradient: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "flex-end",
+    padding: 8,
+  },
+  recentTitle: { color: "#fff", fontSize: 11, fontWeight: "bold" },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    alignSelf: "flex-start",
+    marginBottom: 4,
+  },
+  statusBadgeText: { fontSize: 9, fontWeight: "bold" },
+  quickActionContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 15,
+    gap: 12,
+    marginBottom: 25,
+  },
+  actionBtn: { flex: 1 },
+  actionInner: {
+    padding: 15,
+    borderRadius: 15,
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  actionText: { color: "#888", fontSize: 11, fontWeight: "600" },
+  libraryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     paddingHorizontal: 15,
     justifyContent: "space-between",
   },
-  statBox: {
+  libraryCard: {
     width: (width - 45) / 2,
-    backgroundColor: "#1C1C1E",
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 15,
-    alignItems: "center",
-  },
-  statLabel: {
-    color: "#777",
-    fontSize: 12,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    marginBottom: 5,
-  },
-  statLabelSmall: {
-    color: "#777",
-    fontSize: 12,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    marginLeft: 5,
-  },
-  statRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  statValue: {
-    color: "#fff",
-    fontSize: 28,
-    fontFamily: "BebasNeue",
-  },
-  sectionTitle: {
-    fontFamily: "BebasNeue",
-    fontSize: 24,
-    color: "#fff",
-    marginLeft: 20,
-    marginTop: 20,
-    marginBottom: 15,
-    letterSpacing: 1,
-  },
-  movieCategory: {
-    width: (width - 45) / 2,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: "#161618",
     padding: 15,
-    borderRadius: 15,
+    borderRadius: 18,
     marginBottom: 15,
     flexDirection: "row",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#222",
   },
-  iconBox: {
-    width: 45,
-    height: 45,
-    borderRadius: 10,
+  libIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 10,
   },
-  categoryLabel: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  categoryCount: {
-    color: "#777",
-    fontSize: 11,
-  },
-  settingsBox: {
-    backgroundColor: "#1C1C1E",
+  libLabel: { color: "#fff", fontSize: 13, fontWeight: "bold" },
+  libCount: { color: "#777", fontSize: 10 },
+  footerSection: {
     marginHorizontal: 15,
-    borderRadius: 15,
-    overflow: "hidden",
-  },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2E",
-  },
-  settingLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  settingText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 15,
-    fontFamily: "RobotoSlab",
-  },
-  versionCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#1C1C1E",
-    padding: 16,
-    borderRadius: 14,
-    marginVertical: 8,
-  },
-
-  versionLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  versionLabel: {
-    color: "#8E8E93",
-    fontSize: 13,
-  },
-
-  versionNumber: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: "#161618",
     borderRadius: 20,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#222",
   },
-
-  latestBadge: {
-    backgroundColor: "rgba(52,199,89,0.15)",
+  versionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#222",
   },
-
-  updateBadge: {
-    backgroundColor: "rgba(255,59,48,0.15)",
+  versionInfo: {},
+  vLabel: { color: "#555", fontSize: 10, fontWeight: "bold" },
+  vValue: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  vBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  vBadgeText: { fontSize: 10, fontWeight: "bold" },
+  logoutBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 15,
+    gap: 8,
   },
-
-  badgeText: {
-    color: "#fff",
-    fontSize: 12,
-    marginLeft: 6,
-  },
-
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  logoutText: {
+    color: "#E50914",
+    fontFamily: "BebasNeue",
+    fontSize: 18,
+    letterSpacing: 1,
   },
 });
 
 function AccountRequired({ router }: { router: any }) {
   return (
     <View style={style.container}>
-      <Text style={style.title}>Account Required</Text>
-
+      <Ionicons
+        name="person-circle-outline"
+        size={80}
+        color="#E50914"
+        style={{ marginBottom: 20 }}
+      />
+      <Text style={style.title}>Cinema Center</Text>
       <Text style={style.subtitle}>
-        You need to create an account or sign in to continue.
+        Sign in to track your library, unlock rewards, and personalize your
+        experience.
       </Text>
-
       <TouchableOpacity
         style={style.primaryBtn}
         onPress={() => router.push("/pages/account/register")}
       >
         <Text style={style.primaryText}>Create Account</Text>
       </TouchableOpacity>
-
       <TouchableOpacity
         style={style.secondaryBtn}
         onPress={() => router.push("/pages/account/login")}
@@ -540,35 +840,37 @@ const style = StyleSheet.create({
   },
   title: {
     color: "#fff",
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 32,
+    fontFamily: "BebasNeue",
+    marginBottom: 8,
+    letterSpacing: 1,
   },
   subtitle: {
     color: "#aaa",
     fontSize: 15,
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 40,
+    fontFamily: "RobotoSlab",
+    lineHeight: 22,
   },
   primaryBtn: {
     backgroundColor: "#E50914",
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 40,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 15,
     width: "100%",
+    shadowColor: "#E50914",
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   primaryText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "bold",
     textAlign: "center",
   },
-  secondaryBtn: {
-    padding: 10,
-  },
-  secondaryText: {
-    color: "#E50914",
-    fontSize: 14,
-  },
+  secondaryBtn: { padding: 10 },
+  secondaryText: { color: "#E50914", fontSize: 15, fontWeight: "600" },
 });

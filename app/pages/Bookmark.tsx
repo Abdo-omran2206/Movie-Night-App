@@ -11,7 +11,7 @@ import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { BookmarkManager } from "@/app/api/BookmarkManager";
-import BookmarkCard from "@/app/components/BookmarkCard";
+import BookmarkCard from "@/app/components/Cards/BookmarkCard";
 
 const { height } = Dimensions.get("window");
 
