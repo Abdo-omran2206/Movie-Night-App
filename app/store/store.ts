@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type PageType = "Home" | "Explore" | "Search" | "Bookmark" | "Account";
+type PageType = "Home" | "Explore" | "Bookmark" | "Account";
 type MoodType = "Guest" | "Account";
 
 type StoreType = {
@@ -56,9 +56,16 @@ type RegionState = {
   setRegion: (region: string) => void;
 };
 
+export type ImageQuality = "High" | "Medium" | "Low";
+
+type DataSaver = {
+  dataSavermood : ImageQuality | boolean;
+  setDataSavermood: (dataSavermood: ImageQuality | boolean) => void;
+};
+
 // Zustand store with persistence
 export const useStore = create<
-  StoreType & UserMood & UserState & ConfigState & AppBlockState & RegionState
+  StoreType & UserMood & UserState & ConfigState & AppBlockState & RegionState & DataSaver
 >()(
   persist(
     (set) => ({
@@ -76,14 +83,18 @@ export const useStore = create<
       region: "US", // Default to US
       setRegion: (region: string) => set({ region }),
 
+      //DataSaver
+      dataSavermood: "High",
+      setDataSavermood:(dataSavermood: ImageQuality | boolean) => set({ dataSavermood }),
+
       // App Config
       config: null,
-      webSiteUrl: "https://abdo-omran2206.github.io/Movie-Night",
+      webSiteUrl: "https://movie-night-self.vercel.app",
       setConfig: (config: AppConfig) =>
         set({
           config,
           webSiteUrl:
-            config.base_url || "https://abdo-omran2206.github.io/Movie-Night",
+            config.base_url || "https://movie-night-self.vercel.app",
         }),
 
       // App Blocking State
@@ -105,6 +116,7 @@ export const useStore = create<
         user: state.user,
         mood: state.mood,
         region: state.region,
+        dataSavermood: state.dataSavermood,
       }),
     },
   ),

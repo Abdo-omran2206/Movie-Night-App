@@ -13,7 +13,7 @@ import {
   ToastAndroid,
   Linking,
   ImageBackground,
-  FlatList,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BookmarkManager } from "../api/BookmarkManager";
@@ -25,13 +25,26 @@ import { useRouter } from "expo-router";
 import { supabase } from "../api/supabase";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
+import { getImageUrl } from "../lib/getImageUrl";
+import { regions } from "../constant/main";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Account() {
-  const { mood, setMood, user, setUser, setPage, config, region } = useStore();
+  const {
+    mood,
+    setMood,
+    user,
+    setUser,
+    setPage,
+    config,
+    region,
+    dataSavermood,
+    setDataSavermood,
+  } = useStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isQualityModalVisible, setQualityModalVisible] = useState(false);
   const currentVersion = Constants.expoConfig?.version || "1.0.0";
   const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -139,33 +152,25 @@ export default function Account() {
   const watchingMovies = bookmarks.filter((b) => b.status === "Watching");
   const lastWatched = watchingMovies[0];
 
+  const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
+
   // 🕐 Recently Added – last 5 items across all statuses
   const recentlyAdded = [...bookmarks]
     .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
     .slice(0, 5);
 
-  const regions: Record<string, string> = {
-    US: "USA",
-    EG: "Egypt",
-    GB: "UK",
-    SA: "Saudi Arabia",
-    AE: "UAE",
-    FR: "France",
-    DE: "Germany",
-    CA: "Canada",
-    AU: "Australia",
-    IT: "Italy",
-    ES: "Spain",
-  };
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 150 }}
+    >
       {/* 👤 Modern Header with Backdrop */}
       <View style={styles.headerWrapper}>
         <ImageBackground
           source={{
             uri: lastWatched?.backdrop_path
-              ? `https://image.tmdb.org/t/p/w780${lastWatched.backdrop_path}`
+              ? `${backdropImage}${lastWatched.backdrop_path}`
               : "https://images.unsplash.com/photo-1574267432553-4b4628081c31?auto=format&fit=crop&q=80&w=1000",
           }}
           style={styles.headerBackdrop}
@@ -226,26 +231,26 @@ export default function Account() {
       {watchingMovies.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Continue Watching</Text>
-          <FlatList
+          <ScrollView
             horizontal
-            data={watchingMovies}
-            keyExtractor={(item) => item.id.toString()}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20 }}
-            renderItem={({ item }) => (
+          >
+            {watchingMovies.map((item) => (
               <TouchableOpacity
+                key={`watching-${item.movieID || item.id}`}
                 onPress={() =>
                   router.push(
                     item.type === "tv"
-                      ? `/pages/tvdetails/${item.id}`
-                      : `/pages/moviedetails/${item.id}`,
+                      ? `/pages/tvdetails/${item.movieID || item.id}`
+                      : `/pages/moviedetails/${item.movieID || item.id}`,
                   )
                 }
                 style={styles.continueCard}
               >
                 <Image
                   source={{
-                    uri: `https://image.tmdb.org/t/p/w500${item.backdrop_path}`,
+                    uri: `${backdropImage}${item.backdrop_path}`,
                   }}
                   style={styles.continueBackdrop}
                 />
@@ -259,8 +264,8 @@ export default function Account() {
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
-            )}
-          />
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -297,29 +302,28 @@ export default function Account() {
       )}
       {/* 🕐 Recently Added */}
       {recentlyAdded.length > 0 && (
-        
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recently Added</Text>
-          <FlatList
+          <ScrollView
             horizontal
-            data={recentlyAdded}
-            keyExtractor={(item) => item.id?.toString()}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20 }}
-            renderItem={({ item }) => (
+          >
+            {recentlyAdded.map((item) => (
               <TouchableOpacity
                 style={styles.recentCard}
+                key={`recent-${item.movieID || item.id}`}
                 onPress={() =>
                   router.push(
                     item.type === "tv"
-                      ? `/pages/tvdetails/${item.movieID}`
-                      : `/pages/moviedetails/${item.movieID}`,
+                      ? `/pages/tvdetails/${item.movieID || item.id}`
+                      : `/pages/moviedetails/${item.movieID || item.id}`,
                   )
                 }
               >
                 <Image
                   source={{
-                    uri: `https://image.tmdb.org/t/p/w300${item.poster_path}`,
+                    uri: `${posterImage}${item.poster_path}`,
                   }}
                   style={styles.recentPoster}
                 />
@@ -365,8 +369,8 @@ export default function Account() {
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
-            )}
-          />
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -405,6 +409,53 @@ export default function Account() {
 
       {/* 🛠️ Support & App Info */}
       <View style={styles.footerSection}>
+        <TouchableOpacity
+          style={styles.versionRow}
+          onPress={() => setQualityModalVisible(true)}
+        >
+          <View style={styles.versionInfo}>
+            <Text style={styles.vLabel}>IMAGE QUALITY</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <Text style={styles.vValue}>
+                {dataSavermood === "High"
+                  ? "High Quality"
+                  : dataSavermood === "Medium"
+                    ? "Balanced"
+                    : "Data Saver"}
+              </Text>
+            </View>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 5,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name={
+                dataSavermood === "High"
+                  ? "wifi"
+                  : dataSavermood === "Medium"
+                    ? "speedometer-outline"
+                    : "cellular-outline"
+              }
+              size={15}
+              color="#E50914"
+            />
+
+            <Ionicons name="chevron-forward" size={20} color="#888" />
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.versionRow}>
           <View style={styles.versionInfo}>
             <Text style={styles.vLabel}>CONTENT REGION</Text>
@@ -442,6 +493,122 @@ export default function Account() {
       </View>
 
       <View style={{ height: 100 }} />
+
+      {/* 📡 Image Quality Selection Modal */}
+      <Modal
+        visible={isQualityModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setQualityModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setQualityModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Image Quality</Text>
+
+            <TouchableOpacity
+              style={[
+                styles.qualityOption,
+                dataSavermood === "High" && styles.qualityOptionSelected,
+              ]}
+              onPress={() => {
+                setDataSavermood("High");
+                setQualityModalVisible(false);
+              }}
+            >
+              <Ionicons
+                name="wifi"
+                size={24}
+                color={dataSavermood === "High" ? "#E50914" : "#fff"}
+              />
+              <View style={styles.qualityTextContainer}>
+                <Text
+                  style={[
+                    styles.qualityLabel,
+                    dataSavermood === "High" && styles.qualityLabelSelected,
+                  ]}
+                >
+                  High Quality
+                </Text>
+                <Text style={styles.qualityDesc}>
+                  Best visual experience. Uses original quality for details and
+                  balanced for cards.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.qualityOption,
+                dataSavermood === "Medium" && styles.qualityOptionSelected,
+              ]}
+              onPress={() => {
+                setDataSavermood("Medium");
+                setQualityModalVisible(false);
+              }}
+            >
+              <Ionicons
+                name="speedometer-outline"
+                size={24}
+                color={dataSavermood === "Medium" ? "#E50914" : "#fff"}
+              />
+              <View style={styles.qualityTextContainer}>
+                <Text
+                  style={[
+                    styles.qualityLabel,
+                    dataSavermood === "Medium" && styles.qualityLabelSelected,
+                  ]}
+                >
+                  Balanced
+                </Text>
+                <Text style={styles.qualityDesc}>
+                  Good quality with lower data usage for cards and balanced
+                  details.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.qualityOption,
+                (dataSavermood === "Low" || dataSavermood === true) &&
+                  styles.qualityOptionSelected,
+              ]}
+              onPress={() => {
+                setDataSavermood("Low");
+                setQualityModalVisible(false);
+              }}
+            >
+              <Ionicons
+                name="cellular-outline"
+                size={24}
+                color={
+                  dataSavermood === "Low" || dataSavermood === true
+                    ? "#E50914"
+                    : "#fff"
+                }
+              />
+              <View style={styles.qualityTextContainer}>
+                <Text
+                  style={[
+                    styles.qualityLabel,
+                    (dataSavermood === "Low" || dataSavermood === true) &&
+                      styles.qualityLabelSelected,
+                  ]}
+                >
+                  Data Saver
+                </Text>
+                <Text style={styles.qualityDesc}>
+                  Maximum data saving. Lowest resolution across all screens.
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
@@ -797,6 +964,60 @@ const styles = StyleSheet.create({
     fontFamily: "BebasNeue",
     fontSize: 18,
     letterSpacing: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContainer: {
+    width: "100%",
+    backgroundColor: "#161618",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#222",
+  },
+  modalTitle: {
+    color: "#fff",
+    fontFamily: "BebasNeue",
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: "center",
+    letterSpacing: 1,
+  },
+  qualityOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 10,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  qualityOptionSelected: {
+    borderColor: "#E50914",
+    backgroundColor: "rgba(229, 9, 20, 0.1)",
+  },
+  qualityTextContainer: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  qualityLabel: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  qualityLabelSelected: {
+    color: "#E50914",
+  },
+  qualityDesc: {
+    color: "#888",
+    fontSize: 12,
   },
 });
 

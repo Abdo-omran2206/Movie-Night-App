@@ -20,7 +20,7 @@ import {
 } from "react-native";
 import { fetchFilter, search } from "@/app/api/main";
 import { Ionicons } from "@expo/vector-icons";
-import RenderMovieCard from "@/app/components/ExploreCard";
+import RenderMovieCard from "@/app/components/Cards/ExploreCard";
 const { width } = Dimensions.get("window");
 export default function Explore() {
   const [fontsLoaded] = useFonts({
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   listContainer: {
     backgroundColor: "#0a0a0a",
     paddingHorizontal: 10,
-    paddingBottom: 100,
+    paddingBottom: 120,
     paddingTop: 10,
   },
   columnWrapper: {

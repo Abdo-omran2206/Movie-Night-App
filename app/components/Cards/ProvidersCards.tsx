@@ -11,12 +11,7 @@ import Skeleton from "../Skeleton";
 import React, { useEffect, useState } from "react";
 import { fetchMovies } from "@/app/api/main";
 import { Ionicons } from "@expo/vector-icons";
-type Provider = {
-  provider_id: number;
-  provider_name: string;
-  logo_path: string | null;
-  display_priority?: number;
-};
+import { Provider } from "../../constant/interfaces";
 
 export default function ProvidersCards() {
   const [providers, setProviders] = useState<Provider[]>([]);

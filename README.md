@@ -25,12 +25,12 @@ The application features a dark, cinematic theme with smooth animations, offerin
 
 ### 🏠 **Home Page**
 
-- **Trending Movies**: Large hero cards with backdrop images and movie details
-- **Movie Categories**: Top Rated, Popular, Upcoming, and Now Playing sections
-- **Localized Content**: Automatically dynamically detects user's region via IP to provide localized recommendations and trending movies
-- **Responsive Design**: Optimized for mobile, tablet, and desktop devices
-- **Skeleton Loading**: Smooth, pulse-animated placeholders for all movie lists and hero cards
-- **Smooth Animations**: Premium hover effects and transition animations throughout
+- **Trending Movies**: Immersive hero cards with **Parallax Scrolling** effects via `react-native-reanimated`
+- **Movie Categories**: Top Rated, Popular, Upcoming, and Now Playing sections with parallel loading
+- **Localized Content**: Automatically dynamically detects user's region via IP and centralizes mappings in `constant/main.ts`
+- **Responsive Design**: Optimized for mobile, tablet, and desktop types with dynamic safe-area insets
+- **Skeleton Loading**: High-premium, pulse-animated placeholders for all movie lists and hero cards
+- **Floating Navbar**: A modern, glassmorphism-style floating capsule navigation bar with **Haptic Feedback** integration
 
 ### 🔍 **Search Functionality**
 
@@ -84,15 +84,16 @@ The application features a dark, cinematic theme with smooth animations, offerin
 ## 🛠️ Tech Stack
 
 - **Framework**: [Expo](https://expo.dev/) & [React Native](https://reactnative.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict typing with centralized interfaces)
 - **Backend/Auth**: [Supabase](https://supabase.com/) (PostgreSQL & Auth)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) (Persistent Storage)
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (v3 File-based)
-- **UI/UX**:
+- **UI/Animations**:
+  - `react-native-reanimated` for smooth parallax and content animations
+  - `expo-haptics` for premium tactile feedback on interactions
   - `Skeleton Loading`: Custom pulse-animated placeholders for enhanced UX
-  - `react-native-reanimated` for smooth animations
   - `expo-linear-gradient` for premium aesthetics
-  - `react-native-safe-area-context` for responsive layouts
+  - `react-native-safe-area-context` for responsive, Notch-aware layouts
 - **Media**: `react-native-youtube-iframe` for video integration
 - **API**: [The Movie Database (TMDB)](https://www.themoviedb.org/)
 - **Network**: `@react-native-community/netinfo` for connectivity monitoring
@@ -127,6 +128,9 @@ Movie-Night-App/
 │   │   ├── BookmarkManager.ts   # Unified guest/account bookmark facade
 │   │   ├── OnlineMood.ts        # Cloud (Supabase) bookmark implementation
 │   │   └── GustMood.ts          # Guest (SQLite) bookmark implementation
+│   ├── constant/
+│   │   ├── main.ts              # Global constants (regions, default sections)
+│   │   └── interfaces.ts        # Centralized TypeScript types & interfaces
 │   ├── components/
 │   │   ├── Navbar.tsx           # Bottom navigation bar
 │   │   ├── Banner.tsx           # Home trending hero carousel

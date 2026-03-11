@@ -10,55 +10,33 @@ import {
   StatusBar,
   Dimensions,
   TouchableOpacity,
-  Share,
   ImageBackground,
   Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getActorById, getActorImages } from "../../api/main";
-import { useFonts } from "expo-font";
 import RenderMovieCard from "../../components/Cards/MovieCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "../../store/store";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewer from "../../components/ImageViewer";
-import { slugify } from "@/app/lib/slugify";
-import { encodeId } from "@/app/lib/hash";
-
+import { getImageUrl } from "@/app/lib/getImageUrl";
+import { onShare as centralOnShare } from "@/app/lib/onShare";
 const { width, height } = Dimensions.get("window");
 
 export default function ActorDetails() {
   const { actorID } = useLocalSearchParams();
   const router = useRouter();
-  const { webSiteUrl, config } = useStore();
+  const { webSiteUrl, config, dataSavermood } = useStore();
   const [actor, setActor] = useState<any>(null);
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
+  const { castImage: profilePoster } = getImageUrl(dataSavermood, "detail");
 
   const onShare = async () => {
-    try {
-      const titleSlug = slugify(actor.name) || "";
-      const shareUrl = `${webSiteUrl}${config?.actor_slug || "/actor/"}${encodeId(actor.id)}/${titleSlug || ""}`;
-      // Use template from config or fallback to default message
-      const shareMessage = config?.share_text_template_actor
-        ? config.share_text_template_actor
-            .replace("{name}", actor?.name || "this actor")
-            .replace("{url}", shareUrl)
-        : `🎬 Check out ${actor?.name} on Movie Night!\n\n${shareUrl}`;
-
-      await Share.share({
-        title: "Movie Night",
-        message: shareMessage,
-      });
-    } catch (error: any) {
-      console.error(error.message);
-    }
+    await centralOnShare("actor", actor, webSiteUrl, config);
   };
 
   useEffect(() => {
@@ -80,8 +58,6 @@ export default function ActorDetails() {
     }
     loadActor();
   }, [actorID]);
-
-  if (!fontsLoaded) return null;
 
   if (loading) {
     return (
@@ -111,16 +87,12 @@ export default function ActorDetails() {
       <View style={styles.headerSection}>
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() =>
-            setSelectedImage(
-              `https://image.tmdb.org/t/p/original${actor.profile_path}`,
-            )
-          }
+          onPress={() => setSelectedImage(profilePoster + actor.profile_path)}
           style={{ flex: 1 }}
         >
           <ImageBackground
             source={{
-              uri: `https://image.tmdb.org/t/p/w780${actor.profile_path}`,
+              uri: profilePoster + actor.profile_path,
             }}
             style={styles.coverImage}
           >
@@ -238,14 +210,12 @@ export default function ActorDetails() {
                       { height: index % 3 === 0 ? 250 : 180 },
                     ]}
                     onPress={() =>
-                      setSelectedImage(
-                        `https://image.tmdb.org/t/p/original${item.file_path}`,
-                      )
+                      setSelectedImage(profilePoster + item.file_path)
                     }
                   >
                     <Image
                       source={{
-                        uri: `https://image.tmdb.org/t/p/w500${item.file_path}`,
+                        uri: profilePoster + item.file_path,
                       }}
                       style={styles.galleryImage}
                     />
@@ -263,14 +233,12 @@ export default function ActorDetails() {
                       { height: index % 2 === 0 ? 200 : 280 },
                     ]}
                     onPress={() =>
-                      setSelectedImage(
-                        `https://image.tmdb.org/t/p/original${item.file_path}`,
-                      )
+                      setSelectedImage(profilePoster + item.file_path)
                     }
                   >
                     <Image
                       source={{
-                        uri: `https://image.tmdb.org/t/p/w500${item.file_path}`,
+                        uri: profilePoster + item.file_path,
                       }}
                       style={styles.galleryImage}
                     />
@@ -307,7 +275,9 @@ function BiographySection({ biography }: BioSectionProps) {
           <Text style={styles.modernSectionHeading}>Biography</Text>
           <View style={styles.accentLine} />
         </View>
-        <Text style={styles.modernBiography}>No biography available for this actor.</Text>
+        <Text style={styles.modernBiography}>
+          No biography available for this actor.
+        </Text>
       </View>
     );
   }
@@ -327,7 +297,10 @@ function BiographySection({ biography }: BioSectionProps) {
       </Text>
 
       {biography.length > 500 && (
-        <Pressable style={styles.readMoreContainer} onPress={() => setExpanded(!expanded)}>
+        <Pressable
+          style={styles.readMoreContainer}
+          onPress={() => setExpanded(!expanded)}
+        >
           <Text style={styles.readMore}>
             {expanded ? "Show less" : "Read more"}
           </Text>

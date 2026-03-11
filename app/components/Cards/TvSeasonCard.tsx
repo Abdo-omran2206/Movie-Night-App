@@ -5,22 +5,18 @@ import { SvgXml } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 import generateMovieAvatar from "../../lib/generateMovieAvatar";
 import { useRouter } from "expo-router";
+import { useStore } from "@/app/store/store";
+import { getImageUrl } from "@/app/lib/getImageUrl";
 
-type Season = {
-  id: number;
-  name: string;
-  poster_path: string | null;
-  season_number: number;
-  episode_count: number;
-  air_date: string | null;
-  vote_average: number;
-};
+import { Season } from "../../constant/interfaces";
 
 type Props = { item: Season; tvID?: string };
 
 export default function TvSeasonCard({ item, tvID }: Props) {
   const [imgError, setImgError] = useState(false);
-  const posterUrl = `https://image.tmdb.org/t/p/w500`;
+  const { dataSavermood } = useStore();
+
+  const { posterImage } = getImageUrl(dataSavermood, "card");
   const router = useRouter();
   const fallbackAvatarSvg = generateMovieAvatar(
     item.name || `Season ${item.season_number}`,
@@ -50,7 +46,7 @@ export default function TvSeasonCard({ item, tvID }: Props) {
         {/* 🎬 Poster */}
         {!imgError && item.poster_path ? (
           <Image
-            source={{ uri: posterUrl + item.poster_path }}
+            source={{ uri: posterImage + item.poster_path }}
             style={styles.image}
             onError={() => setImgError(true)}
           />

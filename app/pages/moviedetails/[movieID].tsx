@@ -9,7 +9,6 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
-  Share,
   StatusBar,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -24,8 +23,8 @@ import BookmarkModel from "../../components/BookmarkModel";
 import { useStore } from "../../store/store";
 import StreamModel from "../../components/StreamModel";
 import ImageViewer from "../../components/ImageViewer";
-import { encodeId } from "@/app/lib/hash";
-import { slugify } from "@/app/lib/slugify";
+import { getImageUrl } from "@/app/lib/getImageUrl";
+import { onShare as centralOnShare } from "@/app/lib/onShare";
 const { width, height } = Dimensions.get("window");
 
 export default function MovieDetails() {
@@ -37,27 +36,12 @@ export default function MovieDetails() {
   const [showTrailer, setShowTrailer] = useState(false);
   const [showStreamModel, setShowStreamModel] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { webSiteUrl, config } = useStore();
+  const { webSiteUrl, config, dataSavermood } = useStore();
+
+  const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
+
   const onShare = async () => {
-    try {
-      const year = movie.release_date ? movie.release_date.split("-")[0] : "";
-      const titleSlug = (slugify(movie.title) || "") + (year ? `-${year}` : "");
-      const shareUrl = `${webSiteUrl}${config?.movie_slug || "/movie/"}${encodeId(movie.id)}/${titleSlug || ""}`;
-
-      // Use template from config or fallback to default message
-      const shareMessage = config?.share_text_template_movie
-        ? config.share_text_template_movie
-            .replace("{title}", movie?.title || "this movie")
-            .replace("{url}", shareUrl)
-        : `Check out ${movie?.title} on Movie Night!\n${shareUrl}`;
-
-      await Share.share({
-        title: "Movie Night",
-        message: shareMessage,
-      });
-    } catch (error: any) {
-      console.error(error.message);
-    }
+    await centralOnShare("movie", movie, webSiteUrl, config);
   };
 
   const [fontsLoaded] = useFonts({
@@ -139,7 +123,7 @@ export default function MovieDetails() {
       <View style={styles.posterSection}>
         <ImageBackground
           source={{
-            uri: `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`,
+            uri: backdropImage + movie.backdrop_path,
           }}
           style={styles.cover}
           resizeMode="cover"
@@ -176,16 +160,12 @@ export default function MovieDetails() {
 
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() =>
-              setSelectedImage(
-                `https://image.tmdb.org/t/p/original${movie.poster_path}`,
-              )
-            }
+            onPress={() => setSelectedImage(posterImage + movie.poster_path)}
             style={styles.posterWrapper}
           >
             <Image
               source={{
-                uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                uri: posterImage + movie.poster_path,
               }}
               style={styles.movieposter}
             />

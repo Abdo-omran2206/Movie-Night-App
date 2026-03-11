@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Share,
   StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,8 +23,8 @@ import TrailerModal from "@/app/components/ShowTrailer";
 import React, { useEffect, useState } from "react";
 import { useStore } from "../../store/store";
 import ImageViewer from "../../components/ImageViewer";
-import { encodeId } from "@/app/lib/hash";
-import { slugify } from "@/app/lib/slugify";
+import { getImageUrl } from "@/app/lib/getImageUrl";
+import { onShare as centralOnShare } from "@/app/lib/onShare";
 
 const { width, height } = Dimensions.get("window");
 
@@ -36,28 +35,12 @@ export default function TvDetails() {
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { webSiteUrl, config } = useStore();
+  const { webSiteUrl, config, dataSavermood } = useStore();
+
+  const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
 
   const onShare = async () => {
-    try {
-      const year = tv.first_air_date ? tv.first_air_date.split("-")[0] : "";
-      const titleSlug = (slugify(tv.name) || "") + (year ? `-${year}` : "");
-      const shareUrl = `${webSiteUrl}${config?.tv_slug || "/tv/"}${encodeId(tv.id)}/${titleSlug || ""}`;
-
-      // Use template from config or fallback to default message
-      const shareMessage = config?.share_text_template_tv
-        ? config.share_text_template_tv
-            .replace("{title}", tv?.name || "this tv show")
-            .replace("{url}", shareUrl)
-        : `Check out ${tv?.name} on Movie Night!\n${shareUrl}`;
-
-      await Share.share({
-        title: "Movie Night",
-        message: shareMessage,
-      });
-    } catch (error: any) {
-      console.error(error.message);
-    }
+    await centralOnShare("tv", tv, webSiteUrl, config);
   };
 
   const [fontsLoaded] = useFonts({
@@ -124,7 +107,7 @@ export default function TvDetails() {
       <View style={styles.posterSection}>
         <ImageBackground
           source={{
-            uri: `https://image.tmdb.org/t/p/w500${tv.backdrop_path}`,
+            uri: backdropImage + tv.backdrop_path,
           }}
           style={styles.cover}
           resizeMode="cover"
@@ -161,16 +144,12 @@ export default function TvDetails() {
 
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() =>
-              setSelectedImage(
-                `https://image.tmdb.org/t/p/original${tv.poster_path}`,
-              )
-            }
+            onPress={() => setSelectedImage(posterImage + tv.poster_path)}
             style={styles.posterWrapper}
           >
             <Image
               source={{
-                uri: `https://image.tmdb.org/t/p/w500${tv.poster_path}`,
+                uri: posterImage + tv.poster_path,
               }}
               style={styles.movieposter}
             />

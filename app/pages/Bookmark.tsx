@@ -141,6 +141,7 @@ export default function Bookmark() {
             </View>
           ) : null
         }
+        contentContainerStyle={{ paddingBottom: 120 }}
         initialNumToRender={6}
         windowSize={10}
         removeClippedSubviews

@@ -1,5 +1,3 @@
-// components/moviecard.tsx
-import { useFonts } from "expo-font";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
@@ -8,18 +6,10 @@ import Skeleton from "../Skeleton";
 import generateMovieAvatar from "../../lib/generateMovieAvatar";
 import { SvgXml } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
+import { useStore } from "@/app/store/store";
+import { getImageUrl } from "@/app/lib/getImageUrl";
 
-type Movie = {
-  known_for_department?: string;
-  popularity?: number;
-  profile_path?: string;
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path?: string;
-  release_date?: string;
-  vote_average?: number;
-};
+import { Movie } from "../../constant/interfaces";
 
 export default function RenderMovieCard({
   item,
@@ -34,22 +24,14 @@ export default function RenderMovieCard({
   starColor?: string;
   width?: number;
 }) {
+  const { dataSavermood } = useStore();
   const [imgError, setImgError] = useState(false);
   const cardHeight = (cardWidth * 3) / 2; // 2:3 aspect ratio
-  const posterUrl = `https://image.tmdb.org/t/p/w500`;
+  const { posterImage } = getImageUrl(dataSavermood, "card");
 
   const fallbackAvatarSvg = generateMovieAvatar(
     item.title || item.name || "Untitled Movie",
   );
-
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   if (Loading) {
     return (
@@ -96,7 +78,7 @@ export default function RenderMovieCard({
         item={item}
         cardWidth={cardWidth}
         cardHeight={cardHeight}
-        posterUrl={posterUrl}
+        posterUrl={posterImage}
         fallbackAvatarSvg={fallbackAvatarSvg}
         onPress={handlePress}
       />
@@ -109,7 +91,7 @@ export default function RenderMovieCard({
         {/* 🎬 Poster */}
         {!imgError && item.poster_path ? (
           <Image
-            source={{ uri: posterUrl + item.poster_path }}
+            source={{ uri: posterImage + item.poster_path }}
             style={[
               styles.movieImage,
               { width: cardWidth, height: cardHeight },

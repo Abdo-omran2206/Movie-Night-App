@@ -46,11 +46,12 @@
 
 #### Home (Discovery feed)
 
-- **Trending hero carousel** for weekly trending movies.
+- **Trending hero carousel** for weekly trending movies with **Parallax scrolling** effect.
 - **Category rails**: Top Rated, Popular, Upcoming, Now Playing.
 - **Localized Content**: Resolves user region dynamically via IP to display region-specific trending content.
 - **Loading UX**: skeleton placeholders for hero and lists.
 - **Offline UX**: initial screen shows “No Internet Connection” if disconnected.
+- **Centralized Mapping**: Uses centralized regions mapping for consistent naming across Home and Profile.
 
 #### Explore (Search + filters)
 
@@ -213,13 +214,17 @@
 - **Local storage**
   - AsyncStorage: Supabase auth session; persisted mood/user subset via Zustand.
   - SQLite: guest bookmarks table.
+- **Centralized Data**
+  - All core TypeScript interfaces (Movie, Provider, Bookmark, Cast, Season, etc.) are centralized in `app/constant/interfaces.ts`.
+  - Global constants (regions, default sections) are centralized in `app/constant/main.ts`.
 
 ### Requirements: UX/UI
 
 - Dark “cinematic” theme and premium motion.
-- Bottom navigation with 4 tabs: Home, Explore, Bookmark, Account.
+- **Floating Glassmorphism Navbar**: A rounded, semi-transparent capsule navigation bar with **Haptic Feedback** (`expo-haptics`) and dynamic safe area adaptation.
 - Skeleton loading for list-heavy screens.
 - Full-screen, immersive playback screen (landscape).
+- **Parallax Effects**: Smooth scroll-based animations for hero banners using `react-native-reanimated`.
 
 ### Requirements: performance & reliability
 

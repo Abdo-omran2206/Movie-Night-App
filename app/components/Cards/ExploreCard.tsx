@@ -1,22 +1,14 @@
-import { useFonts } from "expo-font";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
-import Skeleton from "./Skeleton";
+import Skeleton from "../Skeleton";
 import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "../../store/store";
+import { getImageUrl } from "@/app/lib/getImageUrl";
+import generateMovieAvatar from "@/app/lib/generateMovieAvatar";
+import { SvgXml } from "react-native-svg";
 
-type Movie = {
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path?: string;
-  release_date?: string;
-  first_air_date?: string;
-  vote_average?: number;
-  media_type?: "movie" | "tv";
-  region?: string;
-  category?: string;
-};
+import { Movie } from "../../constant/interfaces";
 
 export default function RenderMovieCard({
   item,
@@ -25,6 +17,10 @@ export default function RenderMovieCard({
   item: Movie;
   Loading?: boolean;
 }) {
+  const [imgError, setImgError] = useState(false);
+  const { dataSavermood } = useStore();
+  const { posterImage } = getImageUrl(dataSavermood, "card");
+
   if (Loading) {
     return (
       <View style={styles.cardContainer}>
@@ -71,20 +67,28 @@ export default function RenderMovieCard({
       });
     }
   };
+  const fallbackAvatarSvg = generateMovieAvatar(
+    item.title || item.name || "Untitled Movie",
+  );
 
   return (
     <Pressable onPress={handlePress} style={styles.cardContainer}>
       <View style={styles.movieCard}>
         {/* Poster */}
-        <Image
-          source={{
-            uri: item.poster_path
-              ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-              : "https://via.placeholder.com/200x300?text=No+Image",
-          }}
-          style={styles.movieImage}
-          resizeMode="cover"
-        />
+        {!imgError && item.poster_path ? (
+          <Image
+            source={{
+              uri: posterImage + item.poster_path,
+            }}
+            style={styles.movieImage}
+            resizeMode="cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={[styles.movieImage, { overflow: "hidden" }]}>
+            <SvgXml xml={fallbackAvatarSvg} width="100%" height="100%" />
+          </View>
+        )}
 
         {/* Title */}
         <Text style={styles.movieTitle} numberOfLines={2}>

@@ -9,11 +9,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
-  Share,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts } from "expo-font";
 import { SvgXml } from "react-native-svg";
 import { fetchTvSeasonDetails, getTvById } from "../../../api/main";
 import generateMovieAvatar from "../../../lib/generateMovieAvatar";
@@ -21,7 +19,8 @@ import TrailerModal from "@/app/components/ShowTrailer";
 import { useStore } from "../../../store/store";
 import StreamModel from "../../../components/StreamModel";
 import ImageViewer from "@/app/components/ImageViewer";
-
+import { getImageUrl } from "@/app/lib/getImageUrl";
+import { onShare as centralOnShare } from "@/app/lib/onShare";
 const { width, height } = Dimensions.get("window");
 
 export default function SeasonDetailsScreen() {
@@ -33,34 +32,32 @@ export default function SeasonDetailsScreen() {
   const [imgError, setImgError] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [showStreams, setShowStreams] = useState(false);
-  const { webSiteUrl, config } = useStore();
+  const { webSiteUrl, config, dataSavermood } = useStore();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const posterBase = "https://image.tmdb.org/t/p/w500";
-  const stillBase = "https://image.tmdb.org/t/p/w500";
+  const { posterImage, backdropImage: stillBase } = getImageUrl(
+    dataSavermood,
+    "detail",
+  );
 
   const onShare = async () => {
-    if (!series) return;
-    try {
-      const shareUrl = `${webSiteUrl}${config?.tv_slug || "/tv/"}season/${series.id}/${season.season_number}`;
-      const shareMessage = config?.share_text_template_tv
-        ? config.share_text_template_tv
-            .replace("{title}", series?.name || "this tv show")
-            .replace("{url}", shareUrl)
-        : `Check out ${series?.name} on Movie Night!\n${shareUrl}`;
-      await Share.share({ title: "Movie Night", message: shareMessage });
-    } catch (error: any) {
-      console.error(error?.message);
-    }
+    await centralOnShare("tv_season", series, webSiteUrl, config, season);
   };
 
   const tvID = Array.isArray(slug) && slug.length >= 1 ? slug[0] : undefined;
   const seasonNumber =
     Array.isArray(slug) && slug.length >= 2 ? slug[1] : undefined;
+  const fallbackSvg = generateMovieAvatar(
+    season.name || `Season ${season.season_number}`,
+  );
 
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
+  const hasTrailer = Boolean(
+    season.videos?.results?.find(
+      (v: any) => v.type === "Trailer" && v.site === "YouTube",
+    )?.key || season.videos?.results?.[0]?.key,
+  );
+
+  const episodeCount = season.episodes?.length ?? 0;
+  const airYear = season.air_date ? season.air_date.substring(0, 4) : null;
 
   useEffect(() => {
     async function load() {
@@ -84,7 +81,7 @@ export default function SeasonDetailsScreen() {
     load();
   }, [tvID, seasonNumber]);
 
-  if (!fontsLoaded || loading) {
+  if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#E50914" />
@@ -103,27 +100,12 @@ export default function SeasonDetailsScreen() {
     );
   }
 
-  const posterUrl = season.poster_path ? posterBase + season.poster_path : null;
-  const backdropUrl = series.backdrop_path
-    ? `https://image.tmdb.org/t/p/w500${series.backdrop_path}`
-    : null;
-  const fallbackSvg = generateMovieAvatar(
-    season.name || `Season ${season.season_number}`,
-  );
-  const hasTrailer = Boolean(
-    season.videos?.results?.find(
-      (v: any) => v.type === "Trailer" && v.site === "YouTube",
-    )?.key || season.videos?.results?.[0]?.key,
-  );
-  const episodeCount = season.episodes?.length ?? 0;
-  const airYear = season.air_date ? season.air_date.substring(0, 4) : null;
-
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#000" }}>
       {/* 🎬 Backdrop + Poster (same as [tvID]) */}
       <View style={styles.posterSection}>
         <ImageBackground
-          source={{ uri: backdropUrl || "" }}
+          source={{ uri: stillBase + series.backdrop_path }}
           style={styles.cover}
           resizeMode="cover"
         >
@@ -141,21 +123,20 @@ export default function SeasonDetailsScreen() {
           </View>
 
           <View style={styles.posterWrapper}>
-            {!imgError && posterUrl ? (
+            {!imgError ? (
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() =>
-                  setSelectedImage(
-                    `https://image.tmdb.org/t/p/original${series.poster_path}`,
-                  )
+                  setSelectedImage(posterImage + series.poster_path)
                 }
                 style={styles.movieposter}
               >
                 <Image
                   source={{
-                    uri: `https://image.tmdb.org/t/p/w500${series.poster_path}`,
+                    uri: posterImage + series.poster_path,
                   }}
                   style={styles.movieposter}
+                  onError={() => setImgError(true)}
                 />
               </TouchableOpacity>
             ) : (

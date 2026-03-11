@@ -15,17 +15,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { fetchMovies } from "@/app/api/main";
 import Skeleton from "@/app/components/Skeleton";
+import { Provider } from "../../constant/interfaces";
 
 const { width } = Dimensions.get("window");
 const NUM_COLUMNS = 3;
 const CARD_SIZE = (width - 48) / NUM_COLUMNS; // 48 = padding 16*2 + gaps 8*2
-
-type Provider = {
-  provider_id: number;
-  provider_name: string;
-  logo_path: string | null;
-  display_priority?: number;
-};
 
 export default function Providers() {
   const [providers, setProviders] = useState<Provider[]>([]);

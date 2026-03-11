@@ -5,71 +5,12 @@ import Section from "@/app/components/section";
 import { supabase } from "@/app/api/supabase";
 import { getRegion } from "../lib/getRegion";
 import ProvidersCards from "../components/Cards/ProvidersCards";
-
-export type Movie = {
-  id: number;
-  title?: string;
-  name?: string;
-  backdrop_path?: string;
-  poster_path?: string;
-  vote_average?: number;
-};
-
-type SectionContent = {
-  id?: number;
-  title: string;
-  endpoint: string;
-  type: string;
-  is_active?: boolean;
-};
-
-const defaultSections: SectionContent[] = [
-  { endpoint: "/movie/popular", title: "Popular Movies", type: "movie" },
-  { endpoint: "/tv/popular", title: "Popular TV Shows", type: "tv" },
-  { endpoint: "/movie/top_rated", title: "Top Rated Movies", type: "movie" },
-  { endpoint: "/tv/top_rated", title: "Top Rated TV Shows", type: "tv" },
-  {
-    endpoint: "/movie/now_playing",
-    title: "Now Playing Movies",
-    type: "movie",
-  },
-  { endpoint: "/tv/now_playing", title: "Now Playing TV Shows", type: "tv" },
-  { endpoint: "/tv/airing_today", title: "Airing Today TV Shows", type: "tv" },
-  { endpoint: "/movie/upcoming", title: "Coming Soon Movies", type: "movie" },
-  { endpoint: "/tv/on_the_air", title: "Coming Soon TV Shows", type: "tv" },
-  {
-    endpoint: "/discover/movie?vote_average.gte=7.5&vote_count.gte=1000",
-    title: "Critically Acclaimed Movies",
-    type: "movie",
-  },
-  {
-    endpoint: "/discover/movie?with_genres=28",
-    title: "Action Movies",
-    type: "movie",
-  },
-  {
-    endpoint: "/discover/movie?with_genres=35",
-    title: "Comedy Movies",
-    type: "movie",
-  },
-];
+import { regions, defaultSections } from "../constant/main";
+import { SectionContent } from "../constant/interfaces";
 
 export default function Home() {
   const [sectionsContent, setSectionsContent] = useState<SectionContent[]>([]);
   const [loading, setLoading] = useState(true);
-  const regions: Record<string, string> = {
-    EG: "Egypt",
-    US: "USA",
-    GB: "UK",
-    SA: "Saudi Arabia",
-    AE: "UAE",
-    FR: "France",
-    DE: "Germany",
-    CA: "Canada",
-    AU: "Australia",
-    IT: "Italy",
-    ES: "Spain",
-  };
   useEffect(() => {
     const fetchSections = async () => {
       setLoading(true);
@@ -105,9 +46,12 @@ export default function Home() {
   }, []);
 
   return (
-    <ScrollView style={{ backgroundColor: "#000", flex: 1 }}>
+    <ScrollView
+      style={{ backgroundColor: "#000", flex: 1 }}
+      contentContainerStyle={{ paddingBottom: 120 }}
+    >
       <Banner />
-      <ProvidersCards/>
+      <ProvidersCards />
       {/* Sections */}
 
       {loading ? (

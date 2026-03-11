@@ -3,24 +3,24 @@ import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import generateMovieAvatar from "../../lib/generateMovieAvatar";
 import { SvgXml } from "react-native-svg";
+import { useStore } from "@/app/store/store";
+import { getImageUrl } from "@/app/lib/getImageUrl";
+
+import { Cast } from "../../constant/interfaces";
 
 type CastProps = {
-  item: {
-    id: number;
-    profile_path: string;
-    name: string;
-    character: string;
-    known_for_department: string;
-  };
+  item: Cast;
 };
 
 export default function RenderCastCard({ item }: CastProps) {
   const [imgError, setImgError] = useState(false);
-  const posterUrl = `https://image.tmdb.org/t/p/w500`;
+  const { dataSavermood } = useStore();
+
+  const { castImage: posterUrl } = getImageUrl(dataSavermood, "card");
 
   const fallbackAvatarSvg = generateMovieAvatar(
     item.name || "Untitled Actor",
-    512
+    512,
   );
 
   return (

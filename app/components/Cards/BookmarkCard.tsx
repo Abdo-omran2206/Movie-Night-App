@@ -10,19 +10,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-
 import Skeleton from "../Skeleton";
+import { useStore } from "@/app/store/store";
+import { getImageUrl } from "@/app/lib/getImageUrl";
 
-interface Bookmark {
-  id: number;
-  backdrop_path: string;
-  poster_path: string;
-  title: string;
-  overview: string;
-  movieID: string;
-  type: "movie" | "tv";
-  status: string;
-}
+import { Bookmark } from "../../constant/interfaces";
 
 export default function BookmarkCard({
   item,
@@ -33,6 +25,9 @@ export default function BookmarkCard({
   onRemove: (id: string) => void;
   Loading?: boolean;
 }) {
+  const { dataSavermood } = useStore();
+  const { posterImage, backdropImage } = getImageUrl(dataSavermood, "card");
+
   if (Loading) {
     return (
       <View style={styles.card}>
@@ -103,7 +98,7 @@ export default function BookmarkCard({
     <View style={styles.card}>
       <ImageBackground
         source={{
-          uri: `https://image.tmdb.org/t/p/w500${item.backdrop_path}`,
+          uri: backdropImage + item.backdrop_path,
         }}
         style={styles.bgImage}
         imageStyle={{ borderRadius: 10 }}
@@ -115,7 +110,7 @@ export default function BookmarkCard({
           >
             <Image
               source={{
-                uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+                uri: posterImage + item.poster_path,
               }}
               style={styles.poster}
             />

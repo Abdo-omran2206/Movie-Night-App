@@ -15,6 +15,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { fetchMovies } from "../api/main";
+import { useStore } from "@/app/store/store";
+import { getImageUrl } from "@/app/lib/getImageUrl";
 const { width, height } = Dimensions.get("window");
 const SLIDE_HEIGHT = height * 0.5;
 
@@ -36,8 +38,11 @@ type MovieData = {
 };
 
 export default function Banner() {
+  const { dataSavermood } = useStore();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<MovieData[]>([]);
+  const { backdropImage } = getImageUrl(dataSavermood, "card");
+
   const { height, width } = useWindowDimensions();
   useEffect(() => {
     async function fetchBanner() {
@@ -77,7 +82,7 @@ export default function Banner() {
           {data.map((item) => (
             <Trend
               key={item.id}
-              cover={`https://image.tmdb.org/t/p/w780${item.backdrop_path}`}
+              cover={backdropImage + item.backdrop_path}
               movieTitle={item.title || item.name || "Untitled"}
               id={item.id}
               rating={item.vote_average}

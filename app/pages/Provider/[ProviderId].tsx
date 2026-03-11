@@ -14,21 +14,12 @@ import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import RenderMovieCard from "@/app/components/Cards/MovieCard";
+import { Provider, Tab } from "../../constant/interfaces";
 
 const { width } = Dimensions.get("window");
 const api_key = process.env.EXPO_PUBLIC_API_KEY;
 const base_url = "https://api.themoviedb.org/3";
 const IMAGE_BASE = "https://image.tmdb.org/t/p/w200";
-
-type Provider = {
-  provider_id: number;
-  provider_name: string;
-  logo_path: string | null;
-};
-
-type Tab = "movie" | "tv";
-
-// ── Fetch provider info by ID from the full list ──
 async function fetchProviderInfo(providerId: string): Promise<Provider | null> {
   try {
     const res = await fetch(
