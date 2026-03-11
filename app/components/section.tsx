@@ -16,12 +16,12 @@ interface Movie {
   [key: string]: any;
 }
 
-export default function Section({
+const Section = React.memo(({
   endpoint,
   title,
   mediaType,
   isPlaceholder = false,
-}: SectionProps) {
+}: SectionProps) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<Movie[]>([]);
 
@@ -53,13 +53,18 @@ export default function Section({
     };
   }, [endpoint, isPlaceholder]);
 
-  const skeletonData = Array.from({ length: 5 }).map((_, index) => ({
-    id: -(index + 1), // Using negative IDs to avoid collision with real movie IDs
-  }));
+  const skeletonData = React.useMemo(() => 
+    Array.from({ length: 5 }).map((_, index) => ({
+      id: -(index + 1),
+    })), []);
+
+  const keyExtractor = React.useCallback((item: any) => 
+    item.id ? item.id.toString() : Math.random().toString(), []);
 
   if (data.length === 0 && !loading) {
-    return null; // ما نعرض القسم إذا ما في بيانات بعد ما انتهى التحميل
+    return null;
   }
+
   return (
     <View key={endpoint}>
       <View style={styles.sectionHeader}>
@@ -85,15 +90,20 @@ export default function Section({
             mediaType={mediaType}
           />
         )}
-        keyExtractor={(item) =>
-          item.id ? item.id.toString() : Math.random().toString()
-        }
+        keyExtractor={keyExtractor}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 5 }}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
     </View>
   );
-}
+});
+
+Section.displayName = "Section";
+
+export default Section;
 const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",

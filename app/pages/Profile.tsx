@@ -137,6 +137,22 @@ export default function Account() {
     }, [fetchStatsAndBookmarks]),
   );
 
+  const watchingMovies = React.useMemo(() => 
+    bookmarks.filter((b) => b.status === "Watching"),
+    [bookmarks]
+  );
+  const lastWatched = React.useMemo(() => watchingMovies[0], [watchingMovies]);
+
+  const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
+
+  // 🕐 Recently Added – last 5 items across all statuses
+  const recentlyAdded = React.useMemo(() => 
+    [...bookmarks]
+      .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
+      .slice(0, 5),
+    [bookmarks]
+  );
+
   if (mood === "Guest") {
     return <AccountRequired router={router} />;
   }
@@ -148,16 +164,6 @@ export default function Account() {
       </View>
     );
   }
-
-  const watchingMovies = bookmarks.filter((b) => b.status === "Watching");
-  const lastWatched = watchingMovies[0];
-
-  const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
-
-  // 🕐 Recently Added – last 5 items across all statuses
-  const recentlyAdded = [...bookmarks]
-    .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
-    .slice(0, 5);
 
   return (
     <ScrollView

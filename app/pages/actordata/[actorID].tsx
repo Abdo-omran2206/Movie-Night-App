@@ -35,9 +35,9 @@ export default function ActorDetails() {
 
   const { castImage: profilePoster } = getImageUrl(dataSavermood, "detail");
 
-  const onShare = async () => {
+  const onShare = React.useCallback(async () => {
     await centralOnShare("actor", actor, webSiteUrl, config);
-  };
+  }, [actor, webSiteUrl, config]);
 
   useEffect(() => {
     async function loadActor() {

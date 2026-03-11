@@ -40,22 +40,29 @@ export default function MovieDetails() {
 
   const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
 
-  const onShare = async () => {
+  const onShare = React.useCallback(async () => {
     await centralOnShare("movie", movie, webSiteUrl, config);
-  };
+  }, [movie, webSiteUrl, config]);
 
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
-
-  function formatDate(dateString: string) {
+  const formatDate = React.useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-  }
+  }, []);
+
+  const formatRuntime = React.useCallback((mins: number) => {
+    if (!mins || mins <= 0) return "N/A";
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return `${hours}h ${minutes}min`;
+  }, []);
+
+  const [fontsLoaded] = useFonts({
+    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
+    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
+  });
 
   useEffect(() => {
     async function loaddata() {
@@ -84,13 +91,6 @@ export default function MovieDetails() {
     }
     loaddata();
   }, [movieID]);
-
-  function formatRuntime(mins: number) {
-    if (!mins || mins <= 0) return "N/A";
-    const hours = Math.floor(mins / 60);
-    const minutes = mins % 60;
-    return `${hours}h ${minutes}min`;
-  }
 
   if (!fontsLoaded) {
     return null;

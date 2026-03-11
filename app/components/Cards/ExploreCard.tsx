@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { View, Image, StyleSheet, Text, Pressable } from "react-native";
 import Skeleton from "../Skeleton";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,16 +10,40 @@ import { SvgXml } from "react-native-svg";
 
 import { Movie } from "../../constant/interfaces";
 
-export default function RenderMovieCard({
+const RenderMovieCard = React.memo(({
   item,
   Loading,
 }: {
   item: Movie;
   Loading?: boolean;
-}) {
-  const [imgError, setImgError] = useState(false);
+}) => {
+  const [imgError, setImgError] = React.useState(false);
   const { dataSavermood } = useStore();
   const { posterImage } = getImageUrl(dataSavermood, "card");
+
+  const isTV = React.useMemo(() => 
+    item.media_type === "tv" || (!!item.name && !item.title),
+    [item.media_type, item.name, item.title]
+  );
+
+  const handlePress = React.useCallback(() => {
+    if (isTV) {
+      router.push({
+        pathname: "/pages/tvdetails/[tvID]",
+        params: { tvID: item.id.toString() },
+      });
+    } else {
+      router.push({
+        pathname: "/pages/moviedetails/[movieID]",
+        params: { movieID: item.id.toString() },
+      });
+    }
+  }, [isTV, item.id]);
+
+  const fallbackAvatarSvg = React.useMemo(() => 
+    generateMovieAvatar(item.title || item.name || "Untitled Movie"),
+    [item.title, item.name]
+  );
 
   if (Loading) {
     return (
@@ -51,25 +75,6 @@ export default function RenderMovieCard({
       </View>
     );
   }
-
-  const isTV = item.media_type === "tv" || (!!item.name && !item.title);
-
-  const handlePress = () => {
-    if (isTV) {
-      router.push({
-        pathname: "/pages/tvdetails/[tvID]",
-        params: { tvID: item.id.toString() },
-      });
-    } else {
-      router.push({
-        pathname: "/pages/moviedetails/[movieID]",
-        params: { movieID: item.id.toString() },
-      });
-    }
-  };
-  const fallbackAvatarSvg = generateMovieAvatar(
-    item.title || item.name || "Untitled Movie",
-  );
 
   return (
     <Pressable onPress={handlePress} style={styles.cardContainer}>
@@ -127,7 +132,11 @@ export default function RenderMovieCard({
       </View>
     </Pressable>
   );
-}
+});
+
+RenderMovieCard.displayName = "RenderMovieCard";
+
+export default RenderMovieCard;
 
 const styles = StyleSheet.create({
   cardContainer: {

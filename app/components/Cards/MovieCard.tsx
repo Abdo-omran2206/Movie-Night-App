@@ -11,7 +11,7 @@ import { getImageUrl } from "@/app/lib/getImageUrl";
 
 import { Movie } from "../../constant/interfaces";
 
-export default function RenderMovieCard({
+const RenderMovieCard = React.memo(({
   item,
   Loading,
   mediaType,
@@ -23,15 +23,33 @@ export default function RenderMovieCard({
   mediaType?: "movie" | "tv" | "person";
   starColor?: string;
   width?: number;
-}) {
+}) => {
   const { dataSavermood } = useStore();
-  const [imgError, setImgError] = useState(false);
-  const cardHeight = (cardWidth * 3) / 2; // 2:3 aspect ratio
+  const [imgError, setImgError] = React.useState(false);
+  
+  const cardHeight = React.useMemo(() => (cardWidth * 3) / 2, [cardWidth]);
   const { posterImage } = getImageUrl(dataSavermood, "card");
 
-  const fallbackAvatarSvg = generateMovieAvatar(
-    item.title || item.name || "Untitled Movie",
+  const fallbackAvatarSvg = React.useMemo(() => 
+    generateMovieAvatar(item.title || item.name || "Untitled Movie"),
+    [item.title, item.name]
   );
+
+  const itemMediaType = (item as any).media_type;
+  const handlePress = React.useCallback(() => {
+    const type =
+      mediaType ||
+      itemMediaType ||
+      (item.name && !item.title ? "tv" : "movie");
+
+    if (type === "tv") {
+      router.push(`/pages/tvdetails/${item.id}`);
+    } else if (type === "person") {
+      router.push(`/pages/actordata/${item.id}`);
+    } else {
+      router.push(`/pages/moviedetails/${item.id}`);
+    }
+  }, [item.id, item.name, item.title, mediaType, itemMediaType]);
 
   if (Loading) {
     return (
@@ -55,22 +73,6 @@ export default function RenderMovieCard({
       </View>
     );
   }
-
-  const handlePress = () => {
-    // Determine the type to route properly
-    const type =
-      mediaType ||
-      (item as any).media_type ||
-      (item.name && !item.title ? "tv" : "movie");
-
-    if (type === "tv") {
-      router.push(`/pages/tvdetails/${item.id}`);
-    } else if (type === "person") {
-      router.push(`/pages/actordata/${item.id}`);
-    } else {
-      router.push(`/pages/moviedetails/${item.id}`);
-    }
-  };
 
   if (mediaType === "person") {
     return (
@@ -142,7 +144,11 @@ export default function RenderMovieCard({
       </View>
     </Pressable>
   );
-}
+});
+
+RenderMovieCard.displayName = "RenderMovieCard";
+
+export default RenderMovieCard;
 
 interface PersonCardProps {
   item: Movie;

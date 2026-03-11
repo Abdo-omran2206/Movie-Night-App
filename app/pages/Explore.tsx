@@ -48,7 +48,7 @@ export default function Explore() {
   const [isSearching, setIsSearching] = useState(false);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const countries = [
+  const countries = useMemo(() => [
     { code: "US", label: "🇺🇸 USA" },
     { code: "GB", label: "🇬🇧 UK" },
     { code: "FR", label: "🇫🇷 France" },
@@ -60,9 +60,9 @@ export default function Explore() {
     { code: "BR", label: "🇧🇷 Brazil" },
     { code: "MX", label: "🇲🇽 Mexico" },
     { code: "CN", label: "🇨🇳 China" },
-  ];
+  ], []);
 
-  const genres = [
+  const genres = useMemo(() => [
     { id: 28, name: "Action" },
     { id: 35, name: "Comedy" },
     { id: 27, name: "Horror" },
@@ -78,7 +78,7 @@ export default function Explore() {
     { id: 9648, name: "Mystery" },
     { id: 53, name: "Thriller" },
     { id: 37, name: "Western" },
-  ];
+  ], []);
 
   const years = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -124,21 +124,37 @@ export default function Explore() {
     [type, status, country, selectedGenres, year],
   );
 
-  // 🔍 Handle Search Logic
-  useEffect(() => {
-    if (query.trim().length > 1) {
-      if (typingTimeout.current) clearTimeout(typingTimeout.current);
-      typingTimeout.current = setTimeout(async () => {
+  const performSearch = useCallback(async (q: string, p: number, isReset = true) => {
+    try {
+      const results = await search(q, p);
+      if (isReset) {
+        setSearchResults(results);
+      } else {
+        setSearchResults(prev => [...prev, ...results]);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // 🔍 Handle Typing and Search with Debounce
+  const handleTyping = useCallback((text: string) => {
+    setQuery(text);
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+
+    if (text.length > 2) {
+      typingTimeout.current = setTimeout(() => {
         setIsSearching(true);
         setSearchPage(1);
-        const data = await search(query, 1);
-        setSearchResults(data || []);
-        setIsSearching(false);
+        performSearch(text, 1, true);
       }, 500);
     } else {
+      setIsSearching(false);
       setSearchResults([]);
     }
-  }, [query]);
+  }, [performSearch]);
 
   // 🚀 Load More Logic (Handles both Explore & Search)
   const loadMore = async () => {
@@ -199,10 +215,10 @@ export default function Explore() {
               placeholder="Search movies, tv shows..."
               placeholderTextColor="#777"
               value={query}
-              onChangeText={setQuery}
+              onChangeText={handleTyping}
             />
             {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery("")}>
+              <TouchableOpacity onPress={() => handleTyping("")}>
                 <Ionicons name="close-circle" size={20} color="#777" />
               </TouchableOpacity>
             )}
@@ -210,7 +226,7 @@ export default function Explore() {
         </View>
       </View>
     ),
-    [query],
+    [query, handleTyping],
   );
 
   if (!fontsLoaded) return null;

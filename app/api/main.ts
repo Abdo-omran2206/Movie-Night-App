@@ -1,15 +1,29 @@
 const api_key = process.env.EXPO_PUBLIC_API_KEY;
 const base_url = "https://api.themoviedb.org/3";
 
-// Reusable fetch function
+// Simple in-memory cache
+const apiCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Reusable fetch function with caching
 export async function fetchMovies(endpoint: string) {
+  const cacheKey = `movies:${endpoint}`;
+  const cached = apiCache.get(cacheKey);
+
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   const separator = endpoint.includes("?") ? "&" : "?";
   try {
     const response = await fetch(
       `${base_url}${endpoint}${separator}&api_key=${api_key}&page=1`
     );
     const data = await response.json();
-    return data.results || [];
+    const results = data.results || [];
+    
+    apiCache.set(cacheKey, { data: results, timestamp: Date.now() });
+    return results;
   } catch (error) {
     console.error(`Error fetching ${endpoint}:`, error);
     return [];
@@ -74,6 +88,12 @@ export async function getTvReviews(tvId: string) {
 }
 
 export async function getMovieById(movieid: string) {
+  const cacheKey = `movie:${movieid}`;
+  const cached = apiCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
     const response = await fetch(
       `${base_url}/movie/${movieid}?api_key=${api_key}&language=en-US&append_to_response=credits,similar,videos,recommendations`
@@ -84,6 +104,7 @@ export async function getMovieById(movieid: string) {
     }
 
     const data = await response.json();
+    apiCache.set(cacheKey, { data, timestamp: Date.now() });
     return data;
   } catch (error) {
     console.error("Error fetching movie details:", error);
@@ -109,6 +130,12 @@ export async function getCollectionDetails(collectionId: string) {
   }
 }
 export async function getActorById(actorId: string) {
+  const cacheKey = `actor:${actorId}`;
+  const cached = apiCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
     const response = await fetch(
       `${base_url}/person/${actorId}?api_key=${api_key}&language=en-US&append_to_response=movie_credits,tv_credits,images`
@@ -119,7 +146,8 @@ export async function getActorById(actorId: string) {
     }
 
     const data = await response.json();
-    return data; // 🧑‍🎤 بيرجع تفاصيل الممثل + الأفلام + الصور
+    apiCache.set(cacheKey, { data, timestamp: Date.now() });
+    return data; 
   } catch (error) {
     console.error("Error fetching actor details:", error);
     return null;
@@ -145,6 +173,12 @@ export async function getActorImages(actorId: string) {
 }
 
 export async function getTvById(tvID: string) {
+  const cacheKey = `tv:${tvID}`;
+  const cached = apiCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
     // ✅ Fetch TV show details with credits, videos, and similar shows
     const response = await fetch(
@@ -156,6 +190,7 @@ export async function getTvById(tvID: string) {
     }
 
     const data = await response.json();
+    apiCache.set(cacheKey, { data, timestamp: Date.now() });
     return data;
   } catch (error) {
     console.error("❌ Error fetching TV details:", error);

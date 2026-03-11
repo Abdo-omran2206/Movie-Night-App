@@ -39,22 +39,22 @@ export default function TvDetails() {
 
   const { posterImage, backdropImage } = getImageUrl(dataSavermood, "detail");
 
-  const onShare = async () => {
+  const onShare = React.useCallback(async () => {
     await centralOnShare("tv", tv, webSiteUrl, config);
-  };
+  }, [tv, webSiteUrl, config]);
 
-  const [fontsLoaded] = useFonts({
-    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
-    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
-  });
-
-  function formatDate(dateString: string) {
+  const formatDate = React.useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-  }
+  }, []);
+
+  const [fontsLoaded] = useFonts({
+    BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
+    RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
+  });
 
   useEffect(() => {
     async function loaddata() {

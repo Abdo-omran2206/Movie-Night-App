@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import generateMovieAvatar from "../../lib/generateMovieAvatar";
 import { SvgXml } from "react-native-svg";
@@ -12,26 +12,26 @@ type CastProps = {
   item: Cast;
 };
 
-export default function RenderCastCard({ item }: CastProps) {
-  const [imgError, setImgError] = useState(false);
+const RenderCastCard = React.memo(({ item }: CastProps) => {
+  const [imgError, setImgError] = React.useState(false);
   const { dataSavermood } = useStore();
 
   const { castImage: posterUrl } = getImageUrl(dataSavermood, "card");
 
-  const fallbackAvatarSvg = generateMovieAvatar(
-    item.name || "Untitled Actor",
-    512,
+  const fallbackAvatarSvg = React.useMemo(() =>
+    generateMovieAvatar(item.name || "Untitled Actor", 512),
+    [item.name]
   );
 
+  const handlePress = React.useCallback(() => {
+    router.push({
+      pathname: "/pages/actordata/[actorID]",
+      params: { actorID: item.id.toString() },
+    });
+  }, [item.id]);
+
   return (
-    <Pressable
-      onPress={() =>
-        router.push({
-          pathname: "/pages/actordata/[actorID]",
-          params: { actorID: item.id.toString() },
-        })
-      }
-    >
+    <Pressable onPress={handlePress}>
       <View style={styles.card}>
         {!imgError && item.profile_path ? (
           <Image
@@ -52,7 +52,11 @@ export default function RenderCastCard({ item }: CastProps) {
       </View>
     </Pressable>
   );
-}
+});
+
+RenderCastCard.displayName = "RenderCastCard";
+
+export default RenderCastCard;
 
 const styles = StyleSheet.create({
   card: {

@@ -95,15 +95,13 @@ export default function Banner() {
   );
 }
 
-function Trend({ id, cover, movieTitle, rating, mediaType }: TrendProps) {
+const Trend = React.memo(({ id, cover, movieTitle, rating, mediaType }: TrendProps) => {
   const [fontsLoaded] = useFonts({
     BebasNeue: require("@/assets/fonts/BebasNeue-Regular.ttf"),
     RobotoSlab: require("@/assets/fonts/RobotoSlab-VariableFont_wght.ttf"),
   });
 
-  if (!fontsLoaded) return null;
-
-  const handlePress = () => {
+  const handlePress = React.useCallback(() => {
     if (mediaType === "tv") {
       router.push({
         pathname: "/pages/tvdetails/[tvID]",
@@ -115,7 +113,9 @@ function Trend({ id, cover, movieTitle, rating, mediaType }: TrendProps) {
         params: { movieID: id.toString() },
       });
     }
-  };
+  }, [id, mediaType]);
+
+  if (!fontsLoaded) return null;
 
   return (
     <View style={styles.card}>
@@ -144,7 +144,11 @@ function Trend({ id, cover, movieTitle, rating, mediaType }: TrendProps) {
             <Text style={styles.title} numberOfLines={2}>
               {movieTitle}
             </Text>
-            <TouchableOpacity style={styles.button} onPress={handlePress}>
+            <TouchableOpacity 
+              activeOpacity={0.8} 
+              style={styles.button} 
+              onPress={handlePress}
+            >
               <Ionicons name="play" size={18} color="#fff" />
               <Text style={styles.buttonText}>Watch Now</Text>
             </TouchableOpacity>
@@ -153,13 +157,14 @@ function Trend({ id, cover, movieTitle, rating, mediaType }: TrendProps) {
       </ImageBackground>
     </View>
   );
-}
+});
+
+Trend.displayName = "Trend";
 
 const styles = StyleSheet.create({
   card: {
     width: width,
     height: SLIDE_HEIGHT,
-    overflow: "hidden",
   },
   image: {
     flex: 1,

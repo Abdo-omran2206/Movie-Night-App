@@ -44,6 +44,66 @@ const getStreamUrl = (
   return `${templateUrl}${id}/${season}/${episode}`;
 };
 
+const StreamItem = React.memo(({ item, index, isSelected, onSelect }: { 
+  item: any; 
+  index: number; 
+  isSelected: boolean; 
+  onSelect: (url: string, index: number) => void 
+}) => {
+  const label = item.name ?? `Server Stream ${index + 1}`;
+  const avatarSvg = React.useMemo(() => makeAvatar(
+    item.name ?? `stream-${index}`,
+    100,
+    { backgroundColor: ["222"] },
+  ), [item.name, index]);
+
+  return (
+    <TouchableOpacity
+      onPress={() => onSelect(item.full_url || item.full_url_tv || "", index)}
+      style={[
+        styles.streamCard,
+        isSelected && styles.streamCardSelected,
+      ]}
+      activeOpacity={0.75}
+    >
+      <View
+        style={[
+          styles.cardAccent,
+          isSelected && styles.cardAccentActive,
+        ]}
+      />
+      <View
+        style={[
+          styles.streamIconWrap,
+          isSelected && styles.streamIconWrapActive,
+        ]}
+      >
+        <SvgXml xml={avatarSvg} width="90%" height="90%" />
+      </View>
+      <View style={styles.streamInfo}>
+        <Text
+          style={[
+            styles.streamName,
+            isSelected && styles.streamNameActive,
+          ]}
+        >
+          {label}
+        </Text>
+        <Text style={styles.streamSub}>
+          Stream Server {index + 1}
+        </Text>
+      </View>
+      <Ionicons
+        name="play-circle"
+        size={32}
+        color={isSelected ? "#FF2D55" : "#3A3A3C"}
+      />
+    </TouchableOpacity>
+  );
+});
+
+StreamItem.displayName = "StreamItem";
+
 export default function StreamModal({
   contentId,
   visible,
@@ -66,12 +126,7 @@ export default function StreamModal({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (visible && contentId) fetchStreams();
-    if (!visible) setSelectedIndex(null);
-  }, [visible, contentId]);
-
-  const fetchStreams = async () => {
+  const fetchStreams = React.useCallback(async () => {
     setLoading(true);
     const endpoint = contentType === "movie" ? "full_url" : "full_url_tv";
 
@@ -87,9 +142,14 @@ export default function StreamModal({
       setStreams(data ?? []);
     }
     setLoading(false);
-  };
+  }, [contentType]);
 
-  const openStream = (url: string, index: number) => {
+  useEffect(() => {
+    if (visible && contentId) fetchStreams();
+    if (!visible) setSelectedIndex(null);
+  }, [visible, contentId, fetchStreams]);
+
+  const openStream = React.useCallback((url: string, index: number) => {
     setSelectedIndex(index);
     if (contentType === "movie") {
       router.push({
@@ -110,7 +170,18 @@ export default function StreamModal({
         },
       });
     }
-  };
+  }, [contentId, contentType, episodeNumber, router, seasonNumber]);
+
+  const keyExtractor = React.useCallback((_: any, index: number) => index.toString(), []);
+
+  const renderItem = React.useCallback(({ item, index }: { item: any; index: number }) => (
+    <StreamItem 
+      item={item} 
+      index={index} 
+      isSelected={selectedIndex === index} 
+      onSelect={openStream} 
+    />
+  ), [selectedIndex, openStream]);
 
   return (
     <Modal
@@ -173,72 +244,13 @@ export default function StreamModal({
         ) : (
           <FlatList
             data={streams}
-            keyExtractor={(_, index) => index.toString()}
+            keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item, index }) => {
-              const isSelected = selectedIndex === index;
-              const label = item.name ?? `Server Stream ${index + 1}`;
-              // ✅ Unique seed per item so each card gets a different avatar
-              const avatarSvg = makeAvatar(
-                item.name ?? `stream-${index}`,
-                100,
-                { backgroundColor: ["222"] },
-              );
-
-              return (
-                <TouchableOpacity
-                  onPress={() =>
-                    openStream(item.full_url || item.full_url_tv || "", index)
-                  }
-                  style={[
-                    styles.streamCard,
-                    isSelected && styles.streamCardSelected,
-                  ]}
-                  activeOpacity={0.75}
-                >
-                  {/* Left accent bar */}
-                  <View
-                    style={[
-                      styles.cardAccent,
-                      isSelected && styles.cardAccentActive,
-                    ]}
-                  />
-
-                  {/* Unique avatar per stream */}
-                  <View
-                    style={[
-                      styles.streamIconWrap,
-                      isSelected && styles.streamIconWrapActive,
-                    ]}
-                  >
-                    <SvgXml xml={avatarSvg} width="90%" height="90%" />
-                  </View>
-
-                  {/* Info */}
-                  <View style={styles.streamInfo}>
-                    <Text
-                      style={[
-                        styles.streamName,
-                        isSelected && styles.streamNameActive,
-                      ]}
-                    >
-                      {label}
-                    </Text>
-                    <Text style={styles.streamSub}>
-                      Stream Server {index + 1}
-                    </Text>
-                  </View>
-
-                  {/* Play icon — color reacts to selected state */}
-                  <Ionicons
-                    name="play-circle"
-                    size={32}
-                    color={isSelected ? "#FF2D55" : "#3A3A3C"}
-                  />
-                </TouchableOpacity>
-              );
-            }}
+            renderItem={renderItem}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
           />
         )}
 
