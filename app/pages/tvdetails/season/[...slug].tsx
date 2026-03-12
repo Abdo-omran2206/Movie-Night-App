@@ -39,26 +39,38 @@ export default function SeasonDetailsScreen() {
     "detail",
   );
 
-  const onShare = async () => {
+  const onShare = React.useCallback(async () => {
+    if (!series || !season) return;
     await centralOnShare("tv_season", series, webSiteUrl, config, season);
-  };
+  }, [series, season, webSiteUrl, config]);
+
+  const fallbackSvg = React.useMemo(() => {
+    if (!season) return "";
+    return generateMovieAvatar(
+      season.name || `Season ${season.season_number}`,
+    );
+  }, [season]);
+
+  const hasTrailer = React.useMemo(() => {
+    return Boolean(
+      season?.videos?.results?.find(
+        (v: any) => v.type === "Trailer" && v.site === "YouTube",
+      )?.key || season?.videos?.results?.[0]?.key,
+    );
+  }, [season]);
+
+  const episodeCount = React.useMemo(
+    () => season?.episodes?.length ?? 0,
+    [season],
+  );
+  const airYear = React.useMemo(
+    () => (season?.air_date ? season.air_date.substring(0, 4) : null),
+    [season],
+  );
 
   const tvID = Array.isArray(slug) && slug.length >= 1 ? slug[0] : undefined;
   const seasonNumber =
     Array.isArray(slug) && slug.length >= 2 ? slug[1] : undefined;
-  const fallbackSvg = generateMovieAvatar(
-    season.name || `Season ${season.season_number}`,
-  );
-
-  const hasTrailer = Boolean(
-    season.videos?.results?.find(
-      (v: any) => v.type === "Trailer" && v.site === "YouTube",
-    )?.key || season.videos?.results?.[0]?.key,
-  );
-
-  const episodeCount = season.episodes?.length ?? 0;
-  const airYear = season.air_date ? season.air_date.substring(0, 4) : null;
-
   useEffect(() => {
     async function load() {
       if (!tvID || seasonNumber === undefined) {
@@ -99,6 +111,7 @@ export default function SeasonDetailsScreen() {
       </View>
     );
   }
+
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#000" }}>
