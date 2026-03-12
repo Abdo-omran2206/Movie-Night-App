@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
+  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -121,56 +122,64 @@ export default function MovieDetails() {
         backgroundColor="transparent"
       />
       <View style={styles.posterSection}>
-        <ImageBackground
-          source={{
-            uri: backdropImage + movie.backdrop_path,
-          }}
-          style={styles.cover}
-          resizeMode="cover"
+        <Pressable
+          onPress={() => setSelectedImage(backdropImage + movie.backdrop_path)}
         >
-          <View style={styles.overlay} />
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.actionButton}
-            >
-              <Ionicons name="chevron-back" size={28} color="#fff" />
-            </TouchableOpacity>
-            <View style={{ gap: 10, flexDirection: "row" }}>
-              <TouchableOpacity onPress={onShare} style={styles.actionButton}>
-                <Ionicons name="share-social-outline" size={24} color="#fff" />
-              </TouchableOpacity>
+          <ImageBackground
+            source={{
+              uri: backdropImage + movie.backdrop_path,
+            }}
+            style={styles.cover}
+            resizeMode="cover"
+          >
+            <View style={styles.overlay} />
+            <View style={styles.headerActions}>
               <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/pages/reviews/[movieID]",
-                    params: { movieID: movie.id.toString() },
-                  })
-                }
+                onPress={() => router.back()}
                 style={styles.actionButton}
               >
-                <Ionicons
-                  name="chatbox-ellipses-outline"
-                  size={24}
-                  color="#fff"
-                />
+                <Ionicons name="chevron-back" size={28} color="#fff" />
               </TouchableOpacity>
+              <View style={{ gap: 10, flexDirection: "row" }}>
+                <TouchableOpacity onPress={onShare} style={styles.actionButton}>
+                  <Ionicons
+                    name="share-social-outline"
+                    size={24}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/pages/reviews/[movieID]",
+                      params: { movieID: movie.id.toString() },
+                    })
+                  }
+                  style={styles.actionButton}
+                >
+                  <Ionicons
+                    name="chatbox-ellipses-outline"
+                    size={24}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => setSelectedImage(posterImage + movie.poster_path)}
-            style={styles.posterWrapper}
-          >
-            <Image
-              source={{
-                uri: posterImage + movie.poster_path,
-              }}
-              style={styles.movieposter}
-            />
-          </TouchableOpacity>
-        </ImageBackground>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => setSelectedImage(posterImage + movie.poster_path)}
+              style={styles.posterWrapper}
+            >
+              <Image
+                source={{
+                  uri: posterImage + movie.poster_path,
+                }}
+                style={styles.movieposter}
+              />
+            </TouchableOpacity>
+          </ImageBackground>
+        </Pressable>
       </View>
 
       {/* Title + Bookmark */}

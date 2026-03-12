@@ -34,6 +34,7 @@ export default function SeasonDetailsScreen() {
   const [showStreams, setShowStreams] = useState(false);
   const { webSiteUrl, config, dataSavermood } = useStore();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedEpisode, setSelectedEpisode] = useState<number>(1);
   const { posterImage, backdropImage: stillBase } = getImageUrl(
     dataSavermood,
     "detail",
@@ -83,6 +84,7 @@ export default function SeasonDetailsScreen() {
           getTvById(tvID),
         ]);
         setSeason(seasonData);
+        console.log(seasonData);
         setSeries(seriesData);
       } catch (e) {
         console.error(e);
@@ -140,13 +142,13 @@ export default function SeasonDetailsScreen() {
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() =>
-                  setSelectedImage(posterImage + series.poster_path)
+                  setSelectedImage(posterImage + season.poster_path)
                 }
                 style={styles.movieposter}
               >
                 <Image
                   source={{
-                    uri: posterImage + series.poster_path,
+                    uri: posterImage + season.poster_path,
                   }}
                   style={styles.movieposter}
                   onError={() => setImgError(true)}
@@ -233,6 +235,7 @@ export default function SeasonDetailsScreen() {
             style={styles.episodeRow}
             activeOpacity={0.7}
             onPress={() => {
+              setSelectedEpisode(ep.episode_number);
               setShowStreams(true);
             }}
           >
@@ -329,7 +332,7 @@ export default function SeasonDetailsScreen() {
         contentId={tvID ? parseInt(tvID) : 0}
         contentType="tv"
         seasonNumber={season.season_number}
-        episodeNumber={1}
+        episodeNumber={selectedEpisode}
         visible={showStreams}
         onClose={() => setShowStreams(false)}
       />

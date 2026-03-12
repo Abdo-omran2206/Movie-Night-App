@@ -11,6 +11,7 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
@@ -105,6 +106,9 @@ export default function TvDetails() {
         backgroundColor="transparent"
       />
       <View style={styles.posterSection}>
+        <Pressable
+                  onPress={() => setSelectedImage(backdropImage + tv.backdrop_path)}
+                >
         <ImageBackground
           source={{
             uri: backdropImage + tv.backdrop_path,
@@ -155,6 +159,7 @@ export default function TvDetails() {
             />
           </TouchableOpacity>
         </ImageBackground>
+        </Pressable>
       </View>
 
       {/* 🎞 Title + Bookmark */}
