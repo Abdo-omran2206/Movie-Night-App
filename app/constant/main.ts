@@ -7,7 +7,7 @@ export const posterUrlHigh = `${BASE_IMAGE_URL}/w780`;
 export const posterUrlHighMovie = `${BASE_IMAGE_URL}/original`;
 export const backdropUrlHigh = `${BASE_IMAGE_URL}/w1280`;
 export const backdropUrlHighMovie = `${BASE_IMAGE_URL}/original`;
-export const CastUrlHigh = `${BASE_IMAGE_URL}/original`;
+export const CastUrlHigh = `${BASE_IMAGE_URL}/w780`;
 
 // Medium
 export const posterUrlMedium = `${BASE_IMAGE_URL}/w500`;

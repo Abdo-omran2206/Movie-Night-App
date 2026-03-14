@@ -10,12 +10,11 @@ import {
 import { useStore } from "../store/store";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 type PageType = "Home" | "Explore" | "Bookmark" | "Account";
 type IconName = ComponentProps<typeof Ionicons>["name"];
 
-export default function Navbar() {
-  const { page, setPage } = useStore();
+export default function Navbar({ navigation }: any) {
+  const { page } = useStore();
   const insets = useSafeAreaInsets();
 
   const navpages: { icon: IconName; activeIcon: IconName; name: PageType }[] = [
@@ -46,7 +45,7 @@ export default function Navbar() {
       if (Platform.OS !== "web") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
-      setPage(targetPage);
+      (navigation as any).navigate(targetPage);
     }
   };
 

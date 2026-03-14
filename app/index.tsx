@@ -18,6 +18,32 @@ import Home from "@/app/pages/Home";
 import Bookmark from "@/app/pages/Bookmark";
 import Explore from "@/app/pages/Explore";
 import Account from "./pages/Profile";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+const Tab = createBottomTabNavigator();
+
+function AppTabs() {
+  const { setPage } = useStore();
+
+  return (
+    <Tab.Navigator
+      tabBar={(props) => <Navbar {...props} />}
+      screenOptions={{ freezeOnBlur: true, headerShown: false }}
+      screenListeners={{
+        state: (e: any) => {
+          const state = e.data.state;
+          const routeName = state.routes[state.index].name;
+          setPage(routeName as any);
+        },
+      }}
+    >
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Explore" component={Explore} />
+      <Tab.Screen name="Bookmark" component={Bookmark} />
+      <Tab.Screen name="Account" component={Account} />
+    </Tab.Navigator>
+  );
+}
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
@@ -85,12 +111,9 @@ export default function Index() {
               backgroundColor="transparent"
             />
             <View style={styles.mainContent}>
-              {page === "Home" && <Home />}
-              {page === "Bookmark" && <Bookmark />}
-              {page === "Explore" && <Explore />}
-              {page === "Account" && <Account />}
+                <AppTabs />
             </View>
-            <Navbar />
+            {/* <Navbar /> */}
           </>
         )}
       </View>
@@ -221,8 +244,8 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    // justifyContent: "center",
+    // alignItems: "center",
   },
   text: {
     color: "#fff",
