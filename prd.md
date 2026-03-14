@@ -269,6 +269,6 @@
 - **MVP (current)**
   - Home discovery, Explore search/filters, details pages, trailer modal, bookmarks, auth, remote config enforcement.
 - **vNext**
-  - Align TV share with config templates + deep links.
-  - Implement password reset flow (Supabase).
-  - Harden media fallbacks, error states, and telemetry.
+  - Expand analytics instrumentation based on the recommended event taxonomy.
+  - Add a dedicated configuration guide for the `app_config` table and remote settings.
+  - Further harden media fallbacks, error states, and telemetry.
