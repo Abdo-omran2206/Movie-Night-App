@@ -2,10 +2,10 @@ import { Stack } from "expo-router";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { supabase } from "./api/supabase";
-import { useStore } from "./store/store";
-import { BookmarkManager } from "./api/BookmarkManager";
-import { fetchAppConfig } from "./api/ConfigManager";
+import { supabase } from "@/src/api/supabase";
+import { useStore } from "@/src/store/store";
+import { BookmarkManager } from "@/src/api/BookmarkManager";
+import { fetchAppConfig } from "@/src/api/ConfigManager";
 import * as NavigationBar from "expo-navigation-bar";
 import 'react-native-get-random-values';
 
