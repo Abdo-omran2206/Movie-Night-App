@@ -1,21 +1,4 @@
-import * as SQLite from "expo-sqlite";
-
-// 🧱 اسم قاعدة البيانات
-const DB_NAME = "Movie_Night.db";
-let db: SQLite.SQLiteDatabase | null = null;
-
-// ✅ فتح قاعدة البيانات بأمان
-export async function getDB(): Promise<SQLite.SQLiteDatabase | null> {
-  if (db) return db;
-
-  try {
-    db = await SQLite.openDatabaseAsync(DB_NAME);
-    return db;
-  } catch (error) {
-    console.error("❌ Failed to open database:", error);
-    return null;
-  }
-}
+import { getDB } from "../lib/db";
 
 // 🛠️ إنشاء جدول الـ Bookmarks
 export async function createBookmarkTable() {
@@ -66,7 +49,7 @@ export async function addBookmark(movie: {
         movie.backdrop_path,
         movie.type,
         movie.status,
-      ]
+      ],
     );
   } catch (error) {
     console.error("❌ Error adding bookmark:", error);
@@ -80,7 +63,7 @@ export async function getBookmarks() {
 
   try {
     const rows = await database.getAllAsync<any>(
-      `SELECT * FROM bookmark ORDER BY id DESC`
+      `SELECT * FROM bookmark ORDER BY id DESC`,
     );
     return rows;
   } catch (error) {
@@ -121,7 +104,7 @@ export async function isBookmarked(movieID: string) {
   try {
     const row = await database.getFirstAsync<{ status: string }>(
       `SELECT status FROM bookmark WHERE movieID = ? LIMIT 1`,
-      [movieID]
+      [movieID],
     );
 
     return row ? row.status : null;
@@ -138,7 +121,7 @@ export async function updateBookmarkStatus(movieID: string, status: string) {
   try {
     await database.runAsync(
       `UPDATE bookmark SET status = ? WHERE movieID = ?`,
-      [status, movieID]
+      [status, movieID],
     );
   } catch (error) {
     console.error("❌ Error updating bookmark status:", error);
