@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -7,6 +7,9 @@ import {
   TextInput,
   Pressable,
   Image,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -16,6 +19,11 @@ import {
   getQuickSuggestions,
 } from "@/src/api/nightguide/NightGuide";
 import { search } from "@/src/api/tmdb";
+import {
+  getMessages,
+  addMessage,
+  clearMessages,
+} from "@/src/api/nightguide/NightGuideDBManger";
 
 export interface Chat {
   role: "user" | "model";
@@ -35,6 +43,24 @@ export default function NightGuide() {
   ]);
   const [text, setText] = useState("");
   const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const loadOldMessages = async () => {
+      const rows = await getMessages();
+
+      if (rows.length === 0) return;
+
+      const formattedMessages: Chat[] = rows.map((row) => ({
+        role: row.role,
+        message: row.content,
+        movies: row.movies,
+      }));
+
+      setChat(formattedMessages);
+    };
+
+    loadOldMessages();
+  }, []);
 
   const handleSend = async (customText?: string | any) => {
     const messageText = typeof customText === "string" ? customText : text;
@@ -58,6 +84,9 @@ export default function NightGuide() {
     setText("");
 
     try {
+      // Save user message to DB
+      await addMessage("user", messageText);
+
       const aiText = await getGeminiResponse(messageText, chat);
 
       const titles = Array.from(aiText.matchAll(/\*\*(.*?)\*\*/g)).map(
@@ -69,6 +98,9 @@ export default function NightGuide() {
         const results = await Promise.all(searchPromises);
         moviesData = results.map((res) => res[0]).filter(Boolean);
       }
+
+      // Save model response + movies to DB
+      await addMessage("model", aiText, moviesData);
 
       setChat((prev) => {
         const newChat = [...prev];
@@ -104,68 +136,103 @@ export default function NightGuide() {
     }
   };
 
+  const handleClearmessages = () => {
+    Alert.alert(
+      "Clear Chat",
+      "Are you sure you want to clear all messages? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            await clearMessages();
+            setChat([
+              {
+                role: "model",
+                message:
+                  "Hi there! I'm NightGuide 🎬. What kind of movie or TV show are you in the mood for?",
+              },
+            ]);
+          },
+        },
+      ],
+    );
+  };
+
   return (
-    <View style={style.mainground}>
-      {/* HEADER */}
-      <View style={style.header}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="arrow-back-circle" size={30} color="#fff" />
-        </Pressable>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      <View style={style.mainground}>
+        {/* HEADER */}
+        <View style={style.header}>
+          <View style={style.leftheader}>
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="arrow-back-circle" size={30} color="#fff" />
+            </Pressable>
 
-        <Image
-          source={require("@/assets/images/nightguide/NightGuide.png")}
-          style={style.avatar}
-        />
+            <Image
+              source={require("@/assets/images/nightguide/NightGuide.png")}
+              style={style.avatar}
+            />
 
-        <Text style={style.headerText}>NightGuide</Text>
-      </View>
-
-      {/* CHAT */}
-      <ScrollView
-        ref={scrollRef}
-        style={style.chatArea}
-        contentContainerStyle={{ paddingBottom: 60 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {chat.map((item, idx) => (
-          <ChatCard
-            key={idx}
-            role={item.role}
-            message={item.message}
-            loading={item.loading}
-            movies={item.movies}
-          />
-        ))}
-        {chat.length === 1 && (
-          <View style={style.suggestionsContainer}>
-            {getQuickSuggestions().map((suggestion, idx) => (
-              <Pressable
-                key={idx}
-                style={style.suggestionBubble}
-                onPress={() => handleSend(suggestion)}
-              >
-                <Text style={style.suggestionText}>{suggestion}</Text>
-              </Pressable>
-            ))}
+            <Text style={style.headerText}>NightGuide</Text>
           </View>
-        )}
-      </ScrollView>
+          <Pressable onPress={handleClearmessages}>
+            <Ionicons name="trash" color="#fff" size={30} />
+          </Pressable>
+        </View>
 
-      {/* INPUT */}
-      <View style={style.inputContainer}>
-        <TextInput
-          placeholder="type your recommendation"
-          placeholderTextColor="#888"
-          style={style.input}
-          value={text}
-          onChangeText={setText}
-        />
+        {/* CHAT */}
+        <ScrollView
+          ref={scrollRef}
+          style={style.chatArea}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {chat.map((item, idx) => (
+            <ChatCard
+              key={idx}
+              role={item.role}
+              message={item.message}
+              loading={item.loading}
+              movies={item.movies}
+            />
+          ))}
+          {chat.length === 1 && (
+            <View style={style.suggestionsContainer}>
+              {getQuickSuggestions().map((suggestion, idx) => (
+                <Pressable
+                  key={idx}
+                  style={style.suggestionBubble}
+                  onPress={() => handleSend(suggestion)}
+                >
+                  <Text style={style.suggestionText}>{suggestion}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </ScrollView>
 
-        <Pressable style={style.sendButton} onPress={handleSend}>
-          <Ionicons name="send" size={20} color="#fff" />
-        </Pressable>
+        {/* INPUT */}
+        <View style={style.inputContainer}>
+          <TextInput
+            placeholder="type your recommendation"
+            placeholderTextColor="#888"
+            style={style.input}
+            value={text}
+            onChangeText={setText}
+          />
+
+          <Pressable style={style.sendButton} onPress={handleSend}>
+            <Ionicons name="send" size={20} color="#fff" />
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -179,12 +246,18 @@ const style = StyleSheet.create({
 
   /* HEADER */
   header: {
+    justifyContent: "space-between",
+    paddingHorizontal: 5,
+    paddingBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#222",
+  },
+  leftheader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#222",
   },
 
   avatar: {
@@ -229,7 +302,20 @@ const style = StyleSheet.create({
   },
 
   /* INPUT */
+  // inputContainer: {
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   backgroundColor: "#1a1a1a",
+  //   borderRadius: 25,
+  //   paddingHorizontal: 10,
+  //   paddingVertical: 6,
+  //   marginBottom: 10,
+  // },
   inputContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1a1a1a",

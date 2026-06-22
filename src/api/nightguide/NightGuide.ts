@@ -1,4 +1,5 @@
-import { Chat } from "../../../app/nightguide";
+import { Chat } from "@/app/nightguide";
+import { CreatTableNightGuide } from "./NightGuideDBManger";
 
 const GEMINI_API_KEYS = [
   process.env.EXPO_PUBLIC_GEMINI_API_KEY,
@@ -15,39 +16,41 @@ const MODEL_PRIORITY = [
   "gemini-1.5-flash",
 ];
 
+
 const SYSTEM_PROMPT = `
-You are NightGuide, a friendly and knowledgeable AI assistant specializing in movies and TV shows. 🎬
+You are NightGuide, an intelligent and engaging AI movie & TV show expert 🎬
 
-YOUR ONLY JOB:
-- Recommend great movies and TV shows based on the user's request
-- Use your knowledge to pick the best, most relevant titles
-- You do NOT have access to a database — just your training knowledge
+YOUR ROLE:
+- Recommend movies and TV shows tailored to the user's taste
+- Briefly adapt suggestions based on what the user asked
+- Keep responses fun, natural, and helpful
 
-RESPONSE FORMAT (STRICT — ALWAYS FOLLOW):
-For movies:
-🎬 **Exact Movie Title** (Year) - One-line description.
-
-For TV shows:
-📺 **Exact Show Title** (Year) - One-line description.
+FORMAT (STRICT):
+- Suggest 3–5 titles
+- Use:
+🎬 **Movie Title** (Year) - Short reason why it fits
+📺 **Show Title** (Year) - Short reason why it fits
 
 RULES:
-- Always suggest 3–5 options
-- Use the EXACT, OFFICIAL title (e.g. "The Dark Knight", not "dark knight")
-- The year must be the correct release year
-- Be concise and engaging
-- Use emoji to keep it lively 🎉
-- NEVER include IDs, URLs, or technical data — just title and year
-- NEVER say "I can't find" or refuse to help — always provide recommendations
+- Always use official titles and correct years
+- Keep each description under 12 words
+- Make it feel personalized (even if guessed)
+- Use light emojis 🎉 (not too many)
+- No IDs, links, or technical data
 
-Examples:
-🎬 **Inception** (2010) - A mind-bending heist inside the world of dreams.
-🎬 **The Dark Knight** (2008) - A gritty superhero thriller with an iconic villain.
-📺 **Breaking Bad** (2008) - A chemistry teacher transforms into a drug lord.
+STYLE:
+- Friendly + smart (like a film expert friend)
+- Slight personality, not robotic
+- Avoid generic descriptions
+
+EXAMPLE:
+🎬 **Interstellar** (2014) - Deep sci-fi with emotional, mind-bending themes.
+🎬 **Tenet** (2020) - Complex time mechanics similar to Inception.
+📺 **Dark** (2017) - Twisted timelines and layered storytelling.
 `.trim();
 
-const MAX_HISTORY = 20;
-
 export async function getGeminiResponse(message: string, chat: Chat[]) {
+  await CreatTableNightGuide();
   for (const key of GEMINI_API_KEYS) {
     for (const model of MODEL_PRIORITY) {
       try {
@@ -81,10 +84,11 @@ export async function getGeminiResponse(message: string, chat: Chat[]) {
         if (data?.error) {
           throw new Error(data.error.message);
         }
+        
+        const aiResponse =
+          data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
 
-        return (
-          data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response"
-        );
+        return aiResponse;
       } catch (err: any) {
         console.log(`Model failed: ${model}`, err?.message);
         continue; // try next model
@@ -95,14 +99,16 @@ export async function getGeminiResponse(message: string, chat: Chat[]) {
   return "⚠️ All models failed. Please try again.";
 }
 
-
 export function getQuickSuggestions(): string[] {
-  return [
+  const suggestions = [
     "Recommend sci-fi movies like Inception",
     "What are some good comedy shows?",
     "Suggest thriller movies from 2023",
     "Movies similar to The Dark Knight",
     "Best animated films for family night",
+    "Top horror movies this year",
+    "Underrated drama films to watch",
   ];
-}
 
+  return suggestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+}
