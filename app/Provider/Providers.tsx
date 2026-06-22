@@ -29,7 +29,7 @@ export default function Providers() {
     async function load() {
       try {
         const data = await fetchMovies("/watch/providers/movie");
-        setProviders(data ?? []);
+        setProviders(data.results ?? []);
       } finally {
         setLoading(false);
       }
