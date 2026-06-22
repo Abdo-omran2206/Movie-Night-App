@@ -71,12 +71,12 @@ export const useStore = create<
 
       // App Config
       config: null,
-      webSiteUrl: "https://movie-night-self.vercel.app",
+      webSiteUrl: "https://movienighthub.netlify.app/",
       setConfig: (config: AppConfig) =>
         set({
           config,
           webSiteUrl:
-            config.base_url || "https://movie-night-self.vercel.app",
+            config.base_url || "https://movienighthub.netlify.app/",
         }),
 
       // App Blocking State
