@@ -15,9 +15,9 @@
 
 ## 📝 Description
 
-**Movie Night** is a sleek, premium mobile and web experience that brings the magic of cinema to your fingertips. Built with modern technologies like **React Native**, **Supabase**, and **Zustand**, it offers an intuitive interface for discovering, searching, and exploring **movies and TV shows**. Whether you're looking for trending blockbusters, binge-worthy series, or hidden gems, Movie Night provides comprehensive information including cast details, ratings, genres, and plot summaries.
+**Movie Night** is a sleek, premium mobile and web experience that brings the magic of cinema to your fingertips. Built with modern technologies like **React Native**, **Supabase**, **Zustand**, and **Google Gemini AI**, it offers an intuitive interface for discovering, searching, and exploring **movies and TV shows**. Whether you're looking for trending blockbusters, binge-worthy series, or hidden gems, Movie Night provides comprehensive information including cast details, ratings, genres, and plot summaries.
 
-The application features a dark, cinematic theme with smooth animations, offering a "Netflix-inspired" premium feel that is fully optimized for all devices, making it your perfect companion for planning your next movie night.
+The application features a dark, cinematic theme with smooth animations, offering a "Netflix-inspired" premium feel that is fully optimized for all devices. It also includes **NightGuide**, a personalized AI assistant that helps you find exactly what you're in the mood to watch.
 
 ---
 
@@ -27,10 +27,17 @@ The application features a dark, cinematic theme with smooth animations, offerin
 
 - **Trending Movies**: Immersive hero cards with **Parallax Scrolling** effects via `react-native-reanimated`
 - **Movie Categories**: Top Rated, Popular, Upcoming, and Now Playing sections with parallel loading
-- **Localized Content**: Automatically dynamically detects user's region via IP and centralizes mappings in `constant/main.ts`
+- **Localized Content**: Automatically dynamically detects user's region via IP and centralizes mappings
 - **Responsive Design**: Optimized for mobile, tablet, and desktop types with dynamic safe-area insets
 - **Skeleton Loading**: High-premium, pulse-animated placeholders for all movie lists and hero cards
 - **Floating Navbar**: A modern, glassmorphism-style floating capsule navigation bar with **Haptic Feedback** integration
+
+### 🤖 **NightGuide (AI Assistant)**
+
+- **Smart Recommendations**: Chat with NightGuide, powered by Google Gemini, to get personalized movie and TV show suggestions.
+- **Rich Media Responses**: AI text recommendations automatically resolve into interactive movie cards you can click on.
+- **Persistent Chat History**: Your conversation is saved locally using SQLite so you can pick up where you left off.
+- **Quick Suggestions**: Don't know what to ask? Use one-tap suggestion bubbles to kickstart the conversation.
 
 ### 🔍 **Search Functionality**
 
@@ -88,6 +95,7 @@ The application features a dark, cinematic theme with smooth animations, offerin
 - **Backend/Auth**: [Supabase](https://supabase.com/) (PostgreSQL & Auth)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) (Persistent Storage)
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (v3 File-based)
+- **AI Integration**: [Google Gemini API](https://ai.google.dev/) for intelligent recommendations
 - **UI/Animations**:
   - `react-native-reanimated` for smooth parallax and content animations
   - `expo-haptics` for premium tactile feedback on interactions
@@ -96,6 +104,7 @@ The application features a dark, cinematic theme with smooth animations, offerin
   - `react-native-safe-area-context` for responsive, Notch-aware layouts
 - **Media**: `react-native-youtube-iframe` for video integration
 - **API**: [The Movie Database (TMDB)](https://www.themoviedb.org/)
+- **Database**: SQLite (for guest bookmarks and AI chat history)
 - **Network**: `@react-native-community/netinfo` for connectivity monitoring
 
 ---
@@ -118,71 +127,43 @@ The application features a dark, cinematic theme with smooth animations, offerin
 
 ```bash
 Movie-Night-App/
-├── app/
-│   ├── _layout.tsx              # Root layout & navigation shell
-│   ├── index.tsx                # Tab layout and entry screen
+├── src/                         # Business logic, UI components, and state
 │   ├── api/
 │   │   ├── main.ts              # TMDB API integration helpers
 │   │   ├── supabase.ts          # Supabase client setup
 │   │   ├── ConfigManager.ts     # Remote config & version enforcement
 │   │   ├── BookmarkManager.ts   # Unified guest/account bookmark facade
-│   │   ├── OnlineMood.ts        # Cloud (Supabase) bookmark implementation
-│   │   └── GustMood.ts          # Guest (SQLite) bookmark implementation
-│   ├── constant/
-│   │   ├── main.ts              # Global constants (regions, default sections)
-│   │   └── interfaces.ts        # Centralized TypeScript types & interfaces
+│   │   └── nightguide/          # AI Chatbot API and local DB manager
 │   ├── components/
-│   │   ├── Navbar.tsx           # Bottom navigation bar
-│   │   ├── Banner.tsx           # Home trending hero carousel
-│   │   ├── section.tsx          # Horizontal content rails (home)
-│   │   ├── ExploreCard.tsx      # Card for Explore grid results
-│   │   ├── Skeleton.tsx         # Pulse loading skeletons
-│   │   ├── ShowTrailer.tsx      # YouTube trailer modal
-│   │   ├── StreamModel.tsx      # Watch Now / streaming modal
-│   │   ├── ImageViewer.tsx      # Full-screen image viewer
-│   │   ├── BookmarkModel.tsx    # Bookmark button & status selector
-│   │   └── Cards/
-│   │       ├── BookmarkCard.tsx # Card for bookmark list
-│   │       ├── CastCard.tsx     # Actor/cast avatar card
-│   │       ├── MovieCard.tsx    # Reusable card for movies/TV
-│   │       ├── ProvidersCards.tsx # Card for streaming providers
-│   │       └── TvSeasonCard.tsx # Card for individual TV seasons
-│   ├── lib/
-│   │   ├── generateMovieAvatar.ts # Fallback avatar SVG generator
-│   │   ├── getRegion.ts         # IP-based region detection
-│   │   ├── hash.ts              # Hashing utilities
-│   │   └── slugify.ts           # String slugification utilities
-│   ├── pages/
-│   │   ├── Home.tsx             # Main discovery feed (trending & rails)
-│   │   ├── Explore.tsx          # Search & filters (movies/TV)
-│   │   ├── Bookmark.tsx         # Saved library (guest & account)
-│   │   ├── Profile.tsx          # User account & settings
-│   │   ├── Provider/
-│   │   │   ├── Providers.tsx    # List of streaming providers
-│   │   │   └── [ProviderId].tsx # Movies/TV by provider
-│   │   ├── reviews/
-│   │   │   └── [movieID].tsx    # User reviews for movies/TV
-│   │   ├── moviedetails/
-│   │   │   └── [movieID].tsx    # Movie details screen
-│   │   ├── tvdetails/
-│   │   │   ├── [tvID].tsx       # TV show details screen
-│   │   │   └── season/
-│   │   │       └── [...slug].tsx # TV season details screen
-│   │   ├── actordata/
-│   │   │   ├── [actorID].tsx    # Actor profile details
-│   │   │   └── Filmography.tsx  # Actor filmography grid
-│   │   ├── player/
-│   │   │   └── [player].tsx     # Embedded WebView player
-│   │   └── account/
-│   │       ├── login.tsx        # Login screen
-│   │       ├── register.tsx     # Registration screen
-│   │       ├── confirm.tsx      # Email OTP confirmation
-│   │       └── resetPassword.tsx # Password reset (OTP + new password)
-│   └── store/
-│       └── store.ts             # Zustand global state & config
-├── assets/
-│   ├── fonts/                   # Custom fonts
-│   └── images/                  # App icons & artwork
+│   │   ├── shared/              # Shared UI like Navbar, Skeletons
+│   │   ├── Cards/               # Reusable cards for Movies, TV, Actors
+│   │   └── nightguide/          # AI Chat UI components
+│   ├── types/                   # Centralized TypeScript types & interfaces
+│   ├── lib/                     # Helper utilities (hashing, slugs, IP detection)
+│   └── store/                   # Zustand global state
+├── app/                         # Expo Router screens (Navigation)
+│   ├── _layout.tsx              # Root layout & providers
+│   ├── index.tsx                # Entry/Splash screen redirect logic
+│   ├── (tabs)/                  # Bottom Tab Navigator
+│   │   ├── _layout.tsx          # Custom Tab Bar wrapper
+│   │   ├── index.tsx            # Home Feed
+│   │   ├── explore.tsx          # Search & Filters
+│   │   ├── bookmark.tsx         # Saved Library
+│   │   └── account.tsx          # User Profile
+│   ├── movie/
+│   │   └── [movieID].tsx        # Movie details screen
+│   ├── tv/
+│   │   ├── [tvID].tsx           # TV show details screen
+│   │   └── season/
+│   │       └── [...slug].tsx    # TV season details screen
+│   ├── actor/
+│   │   └── [actorID].tsx        # Actor profile details
+│   ├── nightguide.tsx           # AI Chatbot screen
+│   ├── reviews/                 # User reviews screens
+│   ├── Provider/                # Streaming providers directory
+│   ├── player/                  # Embedded WebView player
+│   └── account/                 # Auth flow (Login, Register, Reset Password)
+├── assets/                      # Fonts, icons, and static images
 └── README.md                    # This file
 ```
 
@@ -255,7 +236,7 @@ Configuration is stored in the Supabase `app_config` table and consumed via the 
 
 ## 📈 Versioning
 
-**Current Stable Release**: `2.8.7`
+**Current Stable Release**: `2.9.0`
 
 Version management is handled through Supabase configuration:
 

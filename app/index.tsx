@@ -11,39 +11,12 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
 import NetInfo from "@react-native-community/netinfo";
-import Navbar from "./components/Navbar";
+// import Navbar from "@/src/components/shared/Navbar";
 import { Ionicons } from "@expo/vector-icons";
-import { useStore, AppConfig } from "@/app/store/store";
-import Home from "@/app/pages/Home";
-import Bookmark from "@/app/pages/Bookmark";
-import Explore from "@/app/pages/Explore";
-import Account from "./pages/Profile";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useStore } from "@/src/store/store";
+import { Redirect } from "expo-router";
+import { AppConfig } from "@/src/types/interfaces";
 
-const Tab = createBottomTabNavigator();
-
-function AppTabs() {
-  const { setPage } = useStore();
-
-  return (
-    <Tab.Navigator
-      tabBar={(props) => <Navbar {...props} />}
-      screenOptions={{ freezeOnBlur: true, headerShown: false }}
-      screenListeners={{
-        state: (e: any) => {
-          const state = e.data.state;
-          const routeName = state.routes[state.index].name;
-          setPage(routeName as any);
-        },
-      }}
-    >
-      <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Explore" component={Explore} />
-      <Tab.Screen name="Bookmark" component={Bookmark} />
-      <Tab.Screen name="Account" component={Account} />
-    </Tab.Navigator>
-  );
-}
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
@@ -111,7 +84,7 @@ export default function Index() {
               backgroundColor="transparent"
             />
             <View style={styles.mainContent}>
-                <AppTabs />
+                <Redirect href="/(tabs)" />
             </View>
             {/* <Navbar /> */}
           </>

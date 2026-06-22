@@ -2,7 +2,7 @@
 
 ### Overview
 
-**Movie Night** is a premium-feeling mobile + web app for discovering movies/TV shows, exploring detailed metadata (cast, genres, ratings), watching trailers, and saving items to a personal bookmark library. It supports **Guest mode** (local SQLite bookmarks) and **Account mode** (Supabase Auth + cloud-synced bookmarks), with **remote configuration** for maintenance mode and version enforcement.
+**Movie Night** is a premium-feeling mobile + web app for discovering movies/TV shows, exploring detailed metadata (cast, genres, ratings), watching trailers, chatting with a personalized AI assistant (NightGuide), and saving items to a personal bookmark library. It supports **Guest mode** (local SQLite bookmarks) and **Account mode** (Supabase Auth + cloud-synced bookmarks), with **remote configuration** for maintenance mode and version enforcement.
 
 ### Goals
 
@@ -35,11 +35,13 @@
    - Launch app → Home feed (Trending + category rails) → open details → watch trailer → bookmark (stored locally).
 2. **Explore & filter**
    - Explore tab → search (debounced) or open filter modal → browse results grid → open details.
-3. **Account onboarding**
+3. **AI Chat & Discovery**
+   - Tap NightGuide icon → chat with Gemini-powered AI → receive tailored movie recommendations → tap generated movie cards to view details.
+4. **Account onboarding**
    - Profile tab (guest) → register → email OTP confirm → becomes “Account mode”.
-4. **Bookmark sync**
+5. **Bookmark sync**
    - User registers/logs in after bookmarking as guest → guest bookmarks **sync to Supabase** → guest DB cleared.
-5. **Operational guardrails**
+6. **Operational guardrails**
    - App starts → fetch remote config → may show maintenance/update-required block screen, or optional update alert.
 
 ### Product requirements
@@ -52,6 +54,14 @@
 - **Loading UX**: skeleton placeholders for hero and lists.
 - **Offline UX**: initial screen shows “No Internet Connection” if disconnected.
 - **Centralized Mapping**: Uses centralized regions mapping for consistent naming across Home and Profile.
+
+#### NightGuide (AI Chatbot)
+
+- **Personalized Recommendations**: Chat interface (`app/nightguide.tsx`) allowing users to ask for movie/TV recommendations.
+- **Gemini Integration**: Powered by Google Gemini API, using a strict system prompt to format titles.
+- **Rich Media Cards**: AI text responses are parsed to extract movie titles, which are then passed through TMDB search to render interactive, horizontal `MovieCard` lists directly in the chat.
+- **Local History**: Chat history is persisted locally via SQLite (`ai_messages` table), including serialized movie card data so the UI remains consistent upon reopening.
+- **Quick Suggestions**: Pre-populated suggestion bubbles when the chat is empty.
 
 #### Explore (Search + filters)
 
@@ -66,8 +76,8 @@
   - Explore results paginate via TMDB discover with `page`.
   - Search results paginate via TMDB search with `page`.
 - **Result cards** open correct details page:
-  - Movie → `moviedetails/[movieID]`
-  - TV → `tvdetails/[tvID]`
+  - Movie → `movie/[movieID]`
+  - TV → `tv/[tvID]`
 
 #### Movie details
 
@@ -101,7 +111,7 @@
 #### TV season details
 
 - Dedicated **Season details** screen per TV show and season:
-  - Route: `tvdetails/season/[...slug]` where slug = `[tvID, seasonNumber]`.
+  - Route: `tv/season/[...slug]` where slug = `[tvID, seasonNumber]`.
   - Fetches per-season metadata, episodes, and videos via TMDB.
 - Shows:
   - Backdrop/poster (from series), season title, overview, year, episode count, rating.
@@ -215,8 +225,8 @@
   - AsyncStorage: Supabase auth session; persisted mood/user subset via Zustand.
   - SQLite: guest bookmarks table.
 - **Centralized Data**
-  - All core TypeScript interfaces (Movie, Provider, Bookmark, Cast, Season, etc.) are centralized in `app/constant/interfaces.ts`.
-  - Global constants (regions, default sections) are centralized in `app/constant/main.ts`.
+  - All core TypeScript interfaces (Movie, Provider, Bookmark, Cast, Season, etc.) are centralized in `src/types/interfaces.ts`.
+  - Global constants (regions, default sections) are centralized in `src/types/main.ts` (or equivalent location).
 
 ### Requirements: UX/UI
 

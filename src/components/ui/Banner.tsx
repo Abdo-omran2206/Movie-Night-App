@@ -1,0 +1,222 @@
+import React, { useEffect, useState } from "react";
+import Swiper from "react-native-swiper";
+import Skeleton from "@/src/components/shared/Skeleton";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  Dimensions,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  useWindowDimensions,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { fetchMovies } from "@/src/api/tmdb";
+import { useStore } from "@/src/store/store";
+import { getImageUrl } from "@/src/lib/getImageUrl";
+import { MovieData, TrendProps } from "@/src/types/interfaces";
+const { width, height } = Dimensions.get("window");
+const SLIDE_HEIGHT = height * 0.5;
+
+export default function Banner() {
+  const { dataSavermood } = useStore();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<MovieData[]>([]);
+  const { backdropImage } = getImageUrl(dataSavermood, "card");
+
+  const { height, width } = useWindowDimensions();
+  useEffect(() => {
+    async function fetchBanner() {
+      const results = await fetchMovies("/trending/all/week");
+      setData(results.results);
+      setLoading(false);
+    }
+    fetchBanner();
+  }, []);
+
+  return (
+    <View>
+      {/* 🎬 Hero Swiper */}
+      {loading ? (
+        <View style={{ height: height * 0.52, width: width }}>
+          <Skeleton width="100%" height="100%" borderRadius={0} />
+          <View style={{ position: "absolute", bottom: 40, left: 20 }}>
+            <Skeleton width={200} height={40} borderRadius={4} />
+            <Skeleton
+              width={100}
+              height={20}
+              borderRadius={4}
+              style={{ marginTop: 10 }}
+            />
+          </View>
+        </View>
+      ) : (
+        <Swiper
+          style={{ height: height * 0.52 }}
+          showsPagination={true}
+          dotColor="gray"
+          activeDotColor="#E50914"
+          loop
+          autoplay
+          autoplayTimeout={5}
+        >
+          {data.map((item) => (
+            <Trend
+              key={item.id}
+              cover={backdropImage + item.backdrop_path}
+              movieTitle={item.title || item.name || "Untitled"}
+              id={item.id}
+              rating={item.vote_average}
+              mediaType={item.media_type}
+            />
+          ))}
+        </Swiper>
+      )}
+    </View>
+  );
+}
+
+const Trend = React.memo(({ id, cover, movieTitle, rating, mediaType }: TrendProps) => {
+
+  const handlePress = React.useCallback(() => {
+    if (mediaType === "tv") {
+      router.push({
+        pathname: "/tv/[tvID]",
+        params: { tvID: id.toString() },
+      });
+    } else {
+      router.push({
+        pathname: "/movie/[movieID]",
+        params: { movieID: id.toString() },
+      });
+    }
+  }, [id, mediaType]);
+
+
+
+  return (
+    <View style={styles.card}>
+      <ImageBackground
+        source={{ uri: cover }}
+        style={styles.image}
+        resizeMode="cover"
+      >
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.95)"]}
+          style={styles.gradient}
+        >
+          <View style={styles.content}>
+            <View style={styles.badgeContainer}>
+              <View style={styles.trendingBadge}>
+                <Ionicons name="flame" size={14} color="#fff" />
+                <Text style={styles.badgeText}>TRENDING NOW</Text>
+              </View>
+              {typeof rating === "number" && rating > 0 && (
+                <View style={styles.ratingContainer}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.title} numberOfLines={2}>
+              {movieTitle}
+            </Text>
+            <TouchableOpacity 
+              activeOpacity={0.8} 
+              style={styles.button} 
+              onPress={handlePress}
+            >
+              <Ionicons name="play" size={18} color="#fff" />
+              <Text style={styles.buttonText}>Watch Now</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
+    </View>
+  );
+});
+
+Trend.displayName = "Trend";
+
+const styles = StyleSheet.create({
+  card: {
+    width: width,
+    height: SLIDE_HEIGHT,
+  },
+  image: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  gradient: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "flex-end",
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  badgeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 10,
+  },
+  trendingBadge: {
+    backgroundColor: "#E50914",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    gap: 4,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
+    fontFamily: "RobotoSlab",
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    gap: 4,
+  },
+  ratingText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  title: {
+    color: "#fff",
+    fontSize: 36,
+    marginBottom: 15,
+    fontFamily: "BebasNeue",
+    letterSpacing: 1,
+    lineHeight: 38,
+  },
+  button: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    gap: 8,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+    fontFamily: "RobotoSlab",
+  },
+});
