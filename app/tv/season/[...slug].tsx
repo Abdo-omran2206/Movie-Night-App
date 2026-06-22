@@ -33,18 +33,13 @@ export default function SeasonDetailsScreen() {
   const [imgError, setImgError] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [showStreams, setShowStreams] = useState(false);
-  const { webSiteUrl, config, dataSavermood } = useStore();
+  const { dataSavermood } = useStore();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<number>(1);
   const { posterImage, backdropImage: stillBase } = getImageUrl(
     dataSavermood,
     "detail",
   );
-
-  const onShare = React.useCallback(async () => {
-    if (!series || !season) return;
-    await centralOnShare("tv_season", encodeId(series), webSiteUrl, config, season);
-  }, [series, season, webSiteUrl, config]);
 
   const fallbackSvg = React.useMemo(() => {
     if (!season) return "";
@@ -128,9 +123,6 @@ export default function SeasonDetailsScreen() {
               style={styles.actionButton}
             >
               <Ionicons name="chevron-back" size={28} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onShare} style={styles.actionButton}>
-              <Ionicons name="share-social-outline" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
 
