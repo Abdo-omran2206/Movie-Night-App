@@ -161,12 +161,12 @@ export default function NightGuide() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-    >
-      <View style={style.mainground}>
+    <View style={style.mainground}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+      >
         {/* HEADER */}
         <View style={style.header}>
           <View style={style.leftheader}>
@@ -190,7 +190,7 @@ export default function NightGuide() {
         <ScrollView
           ref={scrollRef}
           style={style.chatArea}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 80 }}
           keyboardShouldPersistTaps="handled"
         >
           {chat.map((item, idx) => (
@@ -202,7 +202,7 @@ export default function NightGuide() {
               movies={item.movies}
             />
           ))}
-          {chat.length === 1 && (
+          {chat.length === 1 && text.trim().length === 0 && (
             <View style={style.suggestionsContainer}>
               {getQuickSuggestions().map((suggestion, idx) => (
                 <Pressable
@@ -231,8 +231,8 @@ export default function NightGuide() {
             <Ionicons name="send" size={20} color="#fff" />
           </Pressable>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -302,20 +302,7 @@ const style = StyleSheet.create({
   },
 
   /* INPUT */
-  // inputContainer: {
-  //   flexDirection: "row",
-  //   alignItems: "center",
-  //   backgroundColor: "#1a1a1a",
-  //   borderRadius: 25,
-  //   paddingHorizontal: 10,
-  //   paddingVertical: 6,
-  //   marginBottom: 10,
-  // },
   inputContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1a1a1a",
@@ -324,6 +311,19 @@ const style = StyleSheet.create({
     paddingVertical: 6,
     marginBottom: 10,
   },
+  // inputContainer: {
+  //   position: "absolute",
+  //   bottom: 0,
+  //   left: 0,
+  //   right: 0,
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   backgroundColor: "#1a1a1a",
+  //   borderRadius: 25,
+  //   paddingHorizontal: 10,
+  //   paddingVertical: 6,
+  //   // marginBottom: 10,
+  // },
 
   input: {
     flex: 1,

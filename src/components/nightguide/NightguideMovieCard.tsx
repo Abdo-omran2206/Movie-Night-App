@@ -16,9 +16,16 @@ export default function NightguideMovieCard({ item }: { item: Movie }) {
     ? posterImage + item.poster_path
     : generateMovieAvatar(item.name || item.title || "movie");
 
-  const year = item.release_date
-    ? new Date(item.release_date).getFullYear()
-    : "N/A";
+  const year =
+    item.media_type === "movie"
+      ? item.release_date
+        ? new Date(item.release_date).getFullYear()
+        : "N/A"
+      : item.media_type === "tv"
+        ? item.first_air_date
+          ? new Date(item.first_air_date).getFullYear()
+          : "N/A"
+        : "N/A";
 
   return (
     <Link
@@ -46,7 +53,8 @@ export default function NightguideMovieCard({ item }: { item: Movie }) {
         {/* RATING BADGE */}
         <View style={styles.rating}>
           <Text style={styles.ratingText}>
-           <Ionicons name="star" color="#E50914" size={10}/> {item.vote_average?.toFixed(1) ?? "N/A"}
+            <Ionicons name="star" color="#E50914" size={10} />{" "}
+            {item.vote_average?.toFixed(1) ?? "N/A"}
           </Text>
         </View>
 

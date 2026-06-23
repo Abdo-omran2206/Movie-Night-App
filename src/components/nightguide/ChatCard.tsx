@@ -1,6 +1,16 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  ToastAndroid
+} from "react-native";
 import NightguideMovieCard from "./NightguideMovieCard";
+import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
 
 type ChatCardProps = {
   role: "user" | "model";
@@ -24,12 +34,24 @@ const formatMessage = (text: string) => {
   });
 };
 
-export default function ChatCard({ role, message, loading, movies }: ChatCardProps) {
+export default function ChatCard({
+  role,
+  message,
+  loading,
+  movies,
+}: ChatCardProps) {
   if (role === "user") {
     return (
-      <View style={[style.container, style.user]}>
+      <Pressable
+        style={[style.container, style.user]}
+        onLongPress={async () => {
+          await Clipboard.setStringAsync(message);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          ToastAndroid.show("Copied to clipboard ✅", ToastAndroid.SHORT);
+        }}
+      >
         <Text style={style.userText}>{message}</Text>
-      </View>
+      </Pressable>
     );
   }
 
@@ -51,7 +73,11 @@ export default function ChatCard({ role, message, loading, movies }: ChatCardPro
           </View>
 
           {movies && movies.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={style.movieList}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={style.movieList}
+            >
               {movies.map((m, idx) => (
                 <NightguideMovieCard key={idx} item={m} />
               ))}
@@ -84,7 +110,7 @@ const style = StyleSheet.create({
   bot: {
     alignSelf: "flex-start",
     gap: 8,
-    width: "85%",
+    width: "90%",
   },
   botContent: {
     flex: 1,
