@@ -236,7 +236,7 @@ Configuration is stored in the Supabase `app_config` table and consumed via the 
 
 ## 📈 Versioning
 
-**Current Stable Release**: `2.9.0`
+**Current Stable Release**: `2.9.1`
 
 Version management is handled through Supabase configuration:
 

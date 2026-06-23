@@ -99,13 +99,13 @@ export default function Navbar({ state, navigation }: any) {
                 {item.type === "ion" ? (
                   <Ionicons
                     name={isActive ? item.activeIcon : item.icon}
-                    size={24}
+                    size={23}
                     color={isActive ? "#E50914" : "#ffffff"}
                   />
                 ) : (
                   <FontAwesome6
                     name={isActive ? item.activeIcon : item.icon}
-                    size={24}
+                    size={23}
                     color={isActive ? "#E50914" : "#ffffff"}
                   />
                 )}
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   activeIconContainer: {},
   text: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "RobotoSlab",
     letterSpacing: 0.3,
     marginTop: 2,
