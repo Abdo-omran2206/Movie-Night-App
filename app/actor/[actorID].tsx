@@ -12,16 +12,19 @@ import {
   TouchableOpacity,
   ImageBackground,
   Pressable,
+  Linking,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getActorById, getActorImages } from "@/src/api/tmdb";
 import RenderMovieCard from "@/src/components/Cards/MovieCard";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useStore } from "@/src/store/store";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewer from "@/src/components/Models/ImageViewer";
 import { getImageUrl } from "@/src/lib/getImageUrl";
 import { onShare as centralOnShare } from "@/src/lib/onShare";
+import { iconMap } from "@/src/types/main";
+import * as Haptics from "expo-haptics";
 const { width, height } = Dimensions.get("window");
 
 export default function ActorDetails() {
@@ -117,11 +120,46 @@ export default function ActorDetails() {
 
             {/* Actor Name & Info Overlay */}
             <View style={styles.infoOverlay}>
-              <Text style={styles.actorName}>{actor.name}</Text>
-              <Text style={styles.subInfo}>
-                {actor.birthday ? actor.birthday : "N/A"} •{" "}
-                {actor.place_of_birth || "Unknown"}
-              </Text>
+              <View>
+                <Text style={styles.actorName}>{actor.name}</Text>
+                <Text style={styles.subInfo}>
+                  {actor.birthday ? actor.birthday : "N/A"} •{" "}
+                  {actor.place_of_birth || "Unknown"}
+                </Text>
+              </View>
+              <View
+                style={{
+                  backgroundColor: "#00000000",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "row",
+                }}
+              >
+                {Object.entries(iconMap).map(([key, config]) => {
+                  const id = actor.external_ids?.[config.key];
+                  if (!id) return null;
+
+                  return (
+                    <Pressable
+                      key={key}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        Linking.openURL(config.baseUrl + id);
+                      }}
+                      style={{
+                        backgroundColor: config.color + "20",
+                        borderWidth: 1,
+                        borderColor: config.color,
+                        borderRadius: 14,
+                        padding: 8,
+                        marginHorizontal: 5,
+                      }}
+                    >
+                      <FontAwesome5 name={config.name} size={20} color="#fff" />
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           </ImageBackground>
         </TouchableOpacity>
@@ -353,6 +391,8 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
+    display: "flex",
+    gap: 15,
   },
   actorName: {
     color: "#fff",

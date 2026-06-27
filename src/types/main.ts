@@ -56,7 +56,6 @@ export const regionLanguageMap: Record<string, string> = {
   MX: "es",
 };
 
-
 export const defaultSections: SectionContent[] = [
   { endpoint: "/movie/popular", title: "Popular Movies", type: "movie" },
   { endpoint: "/tv/popular", title: "Popular TV Shows", type: "tv" },
@@ -87,3 +86,48 @@ export const defaultSections: SectionContent[] = [
     type: "movie",
   },
 ];
+
+export const iconMap = {
+  imdb: {
+    name: "imdb",
+    color: "#F5C518",
+    baseUrl: "https://www.imdb.com/name/",
+    key: "imdb_id",
+  },
+  instagram: {
+    name: "instagram",
+    color: "#E1306C",
+    baseUrl: "https://www.instagram.com/",
+    key: "instagram_id",
+  },
+  facebook: {
+    name: "facebook",
+    color: "#1877F2",
+    baseUrl: "https://www.facebook.com/",
+    key: "facebook_id",
+  },
+  twitter: {
+    name: "twitter",
+    color: "#1DA1F2",
+    baseUrl: "https://twitter.com/",
+    key: "twitter_id",
+  },
+  tiktok: {
+    name: "tiktok",
+    color: "#000",
+    baseUrl: "https://www.tiktok.com/@",
+    key: "tiktok_id",
+  },
+  youtube: {
+    name: "youtube",
+    color: "#FF0000",
+    baseUrl: "https://www.youtube.com/",
+    key: "youtube_id",
+  },
+  wikidata: {
+    name: "wikipedia-w",
+    color: "#006699",
+    baseUrl: "https://www.wikidata.org/wiki/",
+    key: "wikidata_id",
+  },
+};
