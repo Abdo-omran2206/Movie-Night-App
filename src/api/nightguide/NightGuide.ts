@@ -1,5 +1,4 @@
 import { Chat } from "@/app/nightguide";
-import { CreatTableNightGuide } from "./NightGuideDBManger";
 
 const GEMINI_API_KEYS = [
   process.env.EXPO_PUBLIC_GEMINI_API_KEY,
@@ -50,7 +49,6 @@ EXAMPLE:
 `.trim();
 
 export async function getGeminiResponse(message: string, chat: Chat[]) {
-  await CreatTableNightGuide();
   for (const key of GEMINI_API_KEYS) {
     for (const model of MODEL_PRIORITY) {
       try {

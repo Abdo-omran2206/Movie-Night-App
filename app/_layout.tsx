@@ -7,7 +7,8 @@ import { useStore } from "@/src/store/store";
 import { BookmarkManager } from "@/src/api/BookmarkManager";
 import { fetchAppConfig } from "@/src/api/ConfigManager";
 import * as NavigationBar from "expo-navigation-bar";
-import 'react-native-get-random-values';
+import "react-native-get-random-values";
+import { initNightGuide } from "@/src/api/nightguide/NightGuideDBManger";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -45,6 +46,7 @@ export default function RootLayout() {
     (async () => {
       await fetchAppConfig();
       await BookmarkManager.init();
+      await initNightGuide();
 
       const {
         data: { user },
@@ -61,7 +63,7 @@ export default function RootLayout() {
       async () => {
         await fetchAppConfig();
       },
-      1000 * 60 * 30
+      1000 * 60 * 30,
     );
 
     return () => {
