@@ -62,3 +62,6 @@ export async function clearMessages() {
   }
 }
 
+export async function initNightGuide(){
+  await CreatTableNightGuide()
+}

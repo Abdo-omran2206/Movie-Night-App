@@ -66,7 +66,7 @@ export async function getCollectionDetails(collectionId: string) {
 export async function getActorById(actorId: string) {
   return fetchWithCache(
     `actor:${actorId}`,
-    `${base_url}/person/${actorId}?api_key=${api_key}&append_to_response=movie_credits,tv_credits,images`
+    `${base_url}/person/${actorId}?api_key=${api_key}&append_to_response=movie_credits,tv_credits,images,external_ids`
   );
 }
 
